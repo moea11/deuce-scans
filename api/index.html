@@ -1,0 +1,2417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Deuce Scans</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<style>
+:root{--bg:#0C0E12;--panel:#14171E;--panel2:#1A1E27;--line:#252B36;--ink:#E8E6E1;--muted:#7A828E;--amber:#E8B84B;--up:#3DD68C;--down:#F2545B}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Archivo',sans-serif}
+.mono{font-family:'JetBrains Mono',monospace}
+header{border-bottom:1px solid var(--line);padding:18px 18px 0}
+.brand{font-weight:900;font-size:24px;letter-spacing:3px;font-stretch:75%}
+.tag{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:3px}
+.livedot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--up);margin-right:6px;animation:pulse 1.4s infinite}
+#liveBar{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:8px}
+nav{display:flex;gap:4px;margin-top:12px}
+nav button{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;padding:10px 12px;background:none;border:none;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent}
+nav button.on{color:var(--amber);border-bottom-color:var(--amber)}
+main{max-width:780px;margin:0 auto;padding:20px 16px 70px}
+input[type=text]{font-family:'JetBrains Mono',monospace;font-size:18px;text-transform:uppercase;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:16px;letter-spacing:2px;width:100%}
+input::placeholder{color:#4A515C}
+input:focus{outline:2px solid var(--amber);outline-offset:-1px}
+.big{font-weight:800;font-size:16px;letter-spacing:1px;background:var(--amber);color:#0C0E12;border:none;border-radius:10px;padding:16px;cursor:pointer;width:100%;margin-top:10px;font-family:'Archivo',sans-serif}
+.big:disabled{background:var(--panel2);color:var(--muted);cursor:wait}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:12px}
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--amber);margin-bottom:4px}
+.label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:8px}
+.err{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--down)}
+.status{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--amber);margin-top:12px;animation:pulse 1.4s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.row{display:flex;flex-wrap:wrap;gap:14px;align-items:baseline}
+.px{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700}
+.tk{font-weight:900;font-size:28px}
+.small{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)}
+.ghost{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;letter-spacing:1px;background:none;color:var(--amber);border:1px solid var(--amber);border-radius:8px;padding:9px 14px;cursor:pointer;margin-top:10px}
+.ladder{border-left:2px solid var(--line);padding-left:14px}
+.lrow{display:flex;align-items:baseline;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-family:'JetBrains Mono',monospace}
+.lrow:last-child{border-bottom:none}
+.newsitem{display:block;text-decoration:none;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-top:8px}
+.tvbox{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:12px;background:var(--panel)}
+#tvchart{height:460px}
+.gradebig{font-family:'JetBrains Mono',monospace;font-size:54px;font-weight:700;line-height:1}
+.ev{font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.9}
+.toast{position:fixed;top:12px;left:50%;transform:translateX(-50%);background:var(--amber);color:#0C0E12;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;padding:10px 16px;border-radius:8px;z-index:10;display:none}
+.up{color:var(--up)}.down{color:var(--down)}.amber{color:var(--amber)}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">DEUCE SCANS</div>
+  <div class="tag">search anything · live everything · evidence-backed ratings · bot calls · win rate</div>
+  <div id="liveBar"><span class="livedot"></span>LIVE · waiting for first scan</div>
+  <div id="cfgBar" class="mono" style="font-size:10px;color:var(--muted);margin-top:4px"></div>
+  <nav>
+    <button id="tab-lookup" class="on" onclick="setTab('lookup')">LOOKUP</button>
+    <button id="tab-picks" onclick="setTab('picks')">BOT PICKS</button>
+    <button id="tab-swings" onclick="setTab('swings')">SWINGS</button>
+    <button id="tab-options" onclick="setTab('options')">OPTIONS</button>
+    <button id="tab-nextweek" onclick="setTab('nextweek')">WATCHLIST</button>
+    <button id="tab-news" onclick="setTab('news')">NEWS</button>
+    <button id="tab-record" onclick="setTab('record')">RECORD</button>
+  </nav>
+</header>
+<div class="toast" id="toast"></div>
+<div id="sandboxWarn" style="display:none;background:#F2545B;color:#0C0E12;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;padding:14px 18px;line-height:1.6">
+  ⚠ YOU'RE IN A PREVIEW WINDOW — outside connections are blocked here, so live charts &amp; data can't load.
+  DOWNLOAD this file and double-click it in Finder to open in Safari/Chrome.
+</div>
+<main>
+  <section id="pane-lookup">
+    <input type="text" id="tickerInput" placeholder="Any ticker — QCOM, BOXL, AEHL…" onkeydown="if(event.key==='Enter')runLookup()" />
+    <button class="big" id="lookupBtn" onclick="runLookup()">SEARCH + RATE IT (LIVE)</button>
+    <div id="lookupStatus"></div>
+    <div id="lookupOut"></div>
+  </section>
+
+  <section id="pane-picks" style="display:none">
+    <button class="big" id="picksBtn" onclick="runPicks()">SCAN LIVE — CALL ME STOCKS</button>
+    <div id="picksStatus"></div>
+    <div id="picksOut"></div>
+    <div class="label" style="margin-top:20px">LIVE MARKET MOVERS (TRADINGVIEW)</div>
+    <div class="tvbox" id="tvmovers" style="height:440px"></div>
+  </section>
+
+  <section id="pane-swings" style="display:none">
+    <input type="text" id="swingTicker" placeholder="Any ticker — grade it short-term AND long-term" onkeydown="if(event.key==='Enter')runSwings()" />
+    <button class="big" id="swingBtn" onclick="runSwings()">GRADE BOTH TIMEFRAMES</button>
+    <button class="big" id="swingScanBtn" onclick="runSwingScan()" style="background:var(--panel2);color:var(--amber);border:1px solid var(--amber)">🔎 BOT SWING CALLS — SCAN THE MARKET</button>
+    <div class="row" id="swingSubTabs" style="display:none;gap:4px;margin-top:14px">
+      <button onclick="setSwingView('st')" id="stv-st" class="mono" style="font-size:12px;letter-spacing:1px;padding:9px 14px;background:var(--amber);color:#0C0E12;border:none;border-radius:8px 8px 0 0;cursor:pointer;font-weight:700">SHORT-TERM (DAYS–WEEKS)</button>
+      <button onclick="setSwingView('lt')" id="stv-lt" class="mono" style="font-size:12px;letter-spacing:1px;padding:9px 14px;background:var(--panel2);color:var(--muted);border:none;border-radius:8px 8px 0 0;cursor:pointer">LONG-TERM (MONTHS+)</button>
+    </div>
+    <div id="swingStatus"></div>
+    <div id="swingOut"><p class="small" style="margin-top:16px;line-height:1.7">Two separate verdicts on the same stock: SHORT-TERM SWING (days–weeks) graded on patterns, levels, volume and momentum — and LONG-TERM (months+) graded on the 200-day trend, revenue &amp; earnings growth, margins, debt, cash flow, analyst ratings, insider activity and news. Evidence with numbers behind every line.</p></div>
+  </section>
+
+  <section id="pane-options" style="display:none">
+    <input type="text" id="optTicker" placeholder="SPY, QQQ, IWM, TSLA — any optionable name" onkeydown="if(event.key==='Enter')runOptions()" />
+    <button class="big" id="optBtn" onclick="runOptions()">READ IT — CALLS OR PUTS?</button>
+    <div id="optStatus"></div>
+    <div id="optOut"><p class="small" style="margin-top:16px;line-height:1.7">Type an ETF or stock and the bot reads the daily structure AND the intraday tape, then calls it: CALLS, PUTS, or STAND ASIDE — with your entry level, strike zone, contract price, and expiration. Evidence behind every piece.</p></div>
+
+    <div class="card" style="margin-top:22px">
+      <div class="label">BOT OPTION CALLS — IT SPOTS THE PLAYS</div>
+      <div class="row" style="gap:10px">
+        <select id="scSide" class="mono" style="background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:10px">
+          <option value="auto">AUTO (match trend)</option>
+          <option value="calls">CALLS ONLY</option>
+          <option value="puts">PUTS ONLY</option>
+        </select>
+        <select id="scExp" class="mono" style="background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:10px">
+          <option value="auto" selected>AUTO (match the setup)</option>
+          <option value="0dte">0DTE / nearest</option>
+          <option value="week">THIS WEEK</option>
+          <option value="swing">2–4 WEEKS</option>
+        </select>
+        <input type="text" id="scMax" value="" placeholder="any" class="mono" style="width:90px;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:10px;font-size:13px" />
+        <span class="small">max $/share (optional — e.g. 0.75 = $75/contract)</span>
+        <input type="text" id="minConf" placeholder="min conf % (70)" class="mono" style="width:150px;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:10px;font-size:13px" />
+        <input type="text" id="minMove" placeholder="min move % (4)" class="mono" style="width:140px;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:10px;font-size:13px" />
+        <input type="text" id="riskInput" placeholder="risk $/trade (default 100)" onchange="setRisk(this.value)" class="mono" style="width:170px;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:10px;font-size:13px" />
+      </div>
+      <button class="big" id="scBtn" onclick="runContractScan()">SCAN THE MARKET FOR CONTRACTS</button>
+      <div id="scStatus"></div>
+      <div id="scOut"></div>
+    </div>
+
+    <div class="card" style="margin-top:22px">
+      <div class="label">BACKTEST THE ENGINE — RECEIPTS, NOT PROMISES</div>
+      <p class="small" style="line-height:1.7;margin:4px 0 10px">Replays the exact signal engine over ~2 years of real daily candles across the core universe. Same triggers, same first-touch grading, same conviction tiers. Answers: win rate, profit factor, avg R, max drawdown, hold time, no-fill rate — with the full methodology stated. In-sample test: it measures the rules, it does not promise the future. Your live RECORD is the final judge.</p>
+      <button class="big" id="btBtn" onclick="runBacktest()">RUN THE BACKTEST (~1–2 MIN)</button>
+      <div id="btStatus"></div>
+      <div id="btOut"></div>
+    </div>
+
+    <div class="card" style="margin-top:22px">
+      <div class="label">RESEARCH LAB — FIND THE EDGE, DON'T ASSUME IT</div>
+      <p class="small" style="line-height:1.7;margin:4px 0 10px">Sweeps dozens of rule variants (target distance, time stop, trend filter, volume filter, entry style) across the universe and across TWO separate eras of history. A variant only passes if it works in the EARLY years AND still works in the LATER years it was never picked on. That is the walk-forward test that separates a real edge from a curve-fit. Winners can be loaded straight into your live scans.</p>
+      <button class="big" id="labBtn" onclick="runLab()">RUN THE LAB (~2–4 MIN)</button>
+      <div id="labStatus"></div>
+      <div id="labOut"></div>
+    </div>
+  </section>
+
+  <section id="pane-nextweek" style="display:none">
+    <div class="row" style="gap:10px;flex-wrap:wrap;align-items:center">
+      <label class="small">min score</label>
+      <input type="number" id="nwMinConf" value="0" min="0" max="100" style="width:90px" />
+      <label class="small">tickers to scan</label>
+      <input type="number" id="nwCount" value="40" min="10" max="115" style="width:90px" />
+    </div>
+    <button class="big" id="nwBtn" onclick="runNextWeekScan()">BUILD QUALITY WATCHLIST</button>
+    <div id="nwStatus"></div>
+    <div class="card" style="margin-top:18px">
+      <div class="label">DOES THIS SCORE ACTUALLY RANK ANYTHING?</div>
+      <p class="small" style="margin-top:8px;line-height:1.7">Buckets ~2 years of history by score and compares what each bucket did over the next 10 and 20 trading days. If the ranking carries information, average forward return rises as the score rises. If the buckets come back flat, the score organizes your research but does not predict, and you should know that before leaning on it.</p>
+      <button class="big" id="nwBtBtn" onclick="runNextWeekBacktest()">TEST THE RANKING (~2 MIN)</button>
+      <div id="nwBtStatus"></div>
+      <div id="nwBtOut"></div>
+    </div>
+    <div id="nwOut"><p class="small" style="margin-top:16px;line-height:1.7">Ranks the liquid universe on overall quality: trend, momentum, volume, fundamentals (revenue and earnings growth, margins, debt, free cash flow), analyst view and insider activity. Nothing is excluded by a single gate. Each name shows a score out of 100, a per-category breakdown so you can see what is carrying it and what is dragging, and how much of the score is backed by real data. Earnings is shown as event risk, never used to include or exclude.</p></div>
+  </section>
+
+  <section id="pane-news" style="display:none">
+    <input type="text" id="newsTicker" placeholder="Optional: a ticker for its specific news — or leave blank for the whole market" onkeydown="if(event.key==='Enter')runNews()" />
+    <button class="big" id="newsBtn" onclick="runNews()">PULL LATEST NEWS</button>
+    <div id="newsStatus"></div>
+    <div id="newsFeed"><p class="small" style="margin-top:16px;line-height:1.7">Blank search = market-wide feed (indexes, megacaps, and today's live movers). Type a ticker for its specific headlines. Every headline gets tagged: <span class="up">✓ bullish</span> · <span class="down">✗ bearish</span> · ◆ neutral — same keyword engine that scores news into your grades.</p></div>
+  </section>
+
+  <section id="pane-record" style="display:none">
+    <div class="card"><div class="row">
+      <div><div class="label">WIN RATE</div><div class="px" id="winRate" style="font-size:34px">—</div></div>
+      <div class="small" id="recordStats" style="line-height:1.9"></div>
+    </div></div>
+    <button class="big" onclick="gradeCalls()" id="gradeBtn">GRADE OPEN CALLS (LIVE PRICES)</button>
+    <div id="recordStatus"></div>
+    <div id="recordOut"></div>
+  </section>
+</main>
+
+<script src="https://s3.tradingview.com/tv.js"></script>
+<script>
+const $=(id)=>document.getElementById(id);
+const fmtPx=(n)=> n==null||isNaN(+n)?"—":(+n>=1?(+n).toFixed(2):(+n).toFixed(4));
+const today=()=>new Date().toISOString().slice(0,10);
+const esc=(s)=>String(s==null?"":s).replace(/[&<>"']/g,(c)=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function markLive(what){ $("liveBar").innerHTML='<span class="livedot"></span>LIVE · '+esc(what)+' · updated '+new Date().toLocaleTimeString(); }
+
+function setTab(t){
+  ["lookup","picks","swings","options","nextweek","news","record"].forEach((x)=>{
+    $("pane-"+x).style.display=x===t?"":"none";
+    $("tab-"+x).classList.toggle("on",x===t);
+  });
+  if(t==="record")renderRecord();
+  if(t==="picks"&&!window._moversDone){window._moversDone=true;tvEmbed("tvmovers","embed-widget-hotlists.js",{colorTheme:"dark",dateRange:"1D",exchange:"US",showChart:true,locale:"en",width:"100%",height:440,isTransparent:true,plotLineColorGrowing:"#3DD68C",plotLineColorFalling:"#F2545B"});}
+}
+function flash(m){const el=$("toast");el.textContent=m;el.style.display="block";setTimeout(()=>el.style.display="none",2400);}
+
+/* ---- TradingView embeds (fully live) ---- */
+function tvEmbed(containerId,widgetFile,config){
+  const box=$(containerId); box.innerHTML="";
+  const wrap=document.createElement("div"); wrap.className="tradingview-widget-container";
+  const inner=document.createElement("div"); inner.className="tradingview-widget-container__widget";
+  wrap.appendChild(inner);
+  const s=document.createElement("script");
+  s.type="text/javascript"; s.async=true;
+  s.src="https://s3.tradingview.com/external-embedding/"+widgetFile;
+  s.innerHTML=JSON.stringify(config);
+  wrap.appendChild(s); box.appendChild(wrap);
+}
+
+/* ---- data layer: Yahoo Finance via rotating public CORS proxies ---- */
+const PROXY_DEFS=[
+  {mk:(u)=>"https://corsproxy.io/?url="+encodeURIComponent(u),wrap:false},
+  {mk:(u)=>"https://api.allorigins.win/raw?url="+encodeURIComponent(u),wrap:false},
+  {mk:(u)=>"https://api.codetabs.com/v1/proxy?quest="+encodeURIComponent(u),wrap:false},
+  {mk:(u)=>"https://api.allorigins.win/get?url="+encodeURIComponent(u),wrap:true},
+];
+function fetchTimeout(url,ms){
+  return Promise.race([fetch(url),new Promise((_,rej)=>setTimeout(()=>rej(new Error("timeout")),ms))]);
+}
+/* server proxy auto-detect: when this file is hosted (Vercel etc.) it uses its own
+   private data route — zero third-party relays, zero rate limits */
+let serverProxy=false;
+(async function(){
+  try{
+    const r=await fetchTimeout("/api/yahoo?ping=1",3000);
+    if(r.ok){const j=await r.json();serverProxy=!!j.ok;
+      if(serverProxy)markLive("private data route active — max reliability");}
+  }catch(e){}
+})();
+/* cache: stop re-asking for what we just fetched (the #1 cause of relay rate-limits) */
+const YCACHE={};
+const CACHE_TTL=45000, STALE_OK=10*60000;
+let stickyProxy=-1;
+
+/* ---- CIRCUIT BREAKER ----
+   The old retry ladder was 2 rounds x 2 hosts x 4 relays x 12s = ~194s for ONE
+   failed call. Any page action makes 3-5 calls, so a weekend outage turned into
+   a 15-minute hang. Now: when the relays go cold, every later call in that window
+   fails instantly instead of re-burning the full ladder. */
+const BREAKER={fails:0,openUntil:0};
+function breakerOpen(){return Date.now()<BREAKER.openUntil;}
+function breakerTrip(){
+  BREAKER.fails++;
+  if(BREAKER.fails>=2){
+    BREAKER.openUntil=Date.now()+45000;
+    BREAKER.fails=0;
+  }
+}
+function breakerReset(){BREAKER.fails=0;BREAKER.openUntil=0;}
+
+/* ---- ACTION BUDGET ----
+   Every button gets a wall-clock budget. Once it's spent, remaining fetches bail
+   out immediately so the UI always comes back instead of spinning forever. */
+let ACTION={deadline:0};
+function startAction(ms){ACTION.deadline=Date.now()+ms;}
+function endAction(){ACTION.deadline=0;}
+function budgetLeft(){return ACTION.deadline?Math.max(0,ACTION.deadline-Date.now()):Infinity;}
+function budgetBlown(){return ACTION.deadline>0&&Date.now()>ACTION.deadline;}
+
+/* soft(): optional data. Never blocks the whole read — returns null on timeout. */
+async function soft(promiseFactory,ms){
+  try{
+    return await Promise.race([
+      promiseFactory(),
+      new Promise((res)=>setTimeout(()=>res(null),ms))
+    ]);
+  }catch(e){return null;}
+}
+
+async function tryOne(u,p){
+  const r=await fetchTimeout(p.mk(u),7000);
+  if(!r.ok)throw new Error("HTTP "+r.status);
+  let j=await r.json();
+  if(p.wrap&&j&&typeof j.contents==="string")j=JSON.parse(j.contents);
+  return j;
+}
+async function ygetFast(url){
+  const c=YCACHE[url];
+  const now=Date.now();
+  if(c&&now-c.t<CACHE_TTL)return c.data;
+  const hosts=[url,url.replace("query1.finance","query2.finance")];
+  if(serverProxy){
+    for(const u of hosts){
+      try{const r=await fetchTimeout("/api/yahoo?url="+encodeURIComponent(u),8000);
+        if(r.ok){const j=await r.json();YCACHE[url]={t:now,data:j};return j;}}catch(e){}
+    }
+  }
+  const order=[];
+  if(stickyProxy>=0)order.push(stickyProxy);
+  for(let i=0;i<PROXY_DEFS.length;i++)if(i!==stickyProxy)order.push(i);
+  for(const idx of order.slice(0,3)){
+    try{
+      const r=await fetchTimeout(PROXY_DEFS[idx].mk(hosts[0]),6000);
+      if(!r.ok)throw new Error("HTTP "+r.status);
+      let j=await r.json();
+      if(PROXY_DEFS[idx].wrap&&j&&typeof j.contents==="string")j=JSON.parse(j.contents);
+      stickyProxy=idx;YCACHE[url]={t:Date.now(),data:j};return j;
+    }catch(e){if(idx===stickyProxy)stickyProxy=-1;}
+  }
+  throw new Error("skip");
+}
+function serveStale(url,c){
+  if(c&&Date.now()-c.t<STALE_OK){
+    $("liveBar").innerHTML='<span class="livedot" style="background:var(--amber)"></span><span class="amber">RELAYS BUSY — showing data from '+new Date(c.t).toLocaleTimeString()+'</span>';
+    return c.data;
+  }
+  return null;
+}
+async function yget(url){
+  const c=YCACHE[url];
+  const now=Date.now();
+  if(c&&now-c.t<CACHE_TTL)return c.data;
+
+  /* breaker open or budget spent: fail NOW, don't re-burn the ladder */
+  if(breakerOpen()||budgetBlown()){
+    const s=serveStale(url,c);
+    if(s)return s;
+    throw new Error("DATA FEED COLD — relays are down right now. Nothing is hanging; the read stopped on purpose. Try again in ~45s.");
+  }
+
+  const hosts=[url,url.replace("query1.finance","query2.finance")];
+
+  /* hosted mode: private route first */
+  if(serverProxy){
+    for(const u of hosts){
+      try{
+        const r=await fetchTimeout("/api/yahoo?url="+encodeURIComponent(u),8000);
+        if(r.ok){const j=await r.json();breakerReset();YCACHE[url]={t:now,data:j};return j;}
+      }catch(e){}
+    }
+  }
+
+  /* relay mode: sticky healthy relay first, then the rest. ONE round. */
+  const order=[];
+  if(stickyProxy>=0)order.push(stickyProxy);
+  for(let i=0;i<PROXY_DEFS.length;i++)if(i!==stickyProxy)order.push(i);
+  for(const u of hosts){
+    for(const idx of order){
+      if(budgetBlown())break;
+      try{
+        const j=await tryOne(u,PROXY_DEFS[idx]);
+        stickyProxy=idx;
+        breakerReset();
+        YCACHE[url]={t:Date.now(),data:j};
+        return j;
+      }catch(e){if(idx===stickyProxy)stickyProxy=-1;}
+    }
+  }
+
+  breakerTrip();
+  const s=serveStale(url,c);
+  if(s)return s;
+  throw new Error("DATA FEED UNREACHABLE — all relays down and nothing cached. Public relays are flaky on weekends; they come back during market hours. Wait ~45s and search again, or host the file for a private data route.");
+}
+function fmtBig(n){
+  if(n==null||isNaN(+n))return "—";
+  n=+n;
+  if(n>=1e12)return (n/1e12).toFixed(2)+"T";
+  if(n>=1e9)return (n/1e9).toFixed(2)+"B";
+  if(n>=1e6)return (n/1e6).toFixed(1)+"M";
+  if(n>=1e3)return (n/1e3).toFixed(1)+"K";
+  return String(n);
+}
+async function getStats(t){
+  try{
+    const j=await yget("https://query1.finance.yahoo.com/v10/finance/quoteSummary/"+t+"?modules=defaultKeyStatistics%2CsummaryDetail%2CfinancialData%2CnetSharePurchaseActivity%2CrecommendationTrend%2CcalendarEvents");
+    const r=j&&j.quoteSummary&&j.quoteSummary.result&&j.quoteSummary.result[0];
+    if(!r)return null;
+    const ks=r.defaultKeyStatistics||{},sd=r.summaryDetail||{},fd=r.financialData||{},ns=r.netSharePurchaseActivity||{};
+    const rt=(r.recommendationTrend&&r.recommendationTrend.trend&&r.recommendationTrend.trend[0])||null;
+    let earnDate=null;
+    try{const ed=r.calendarEvents&&r.calendarEvents.earnings&&r.calendarEvents.earnings.earningsDate;
+      if(ed&&ed.length&&ed[0].raw)earnDate=ed[0].raw*1000;}catch(e){}
+    const g=(o)=>o&&o.raw!=null?o.raw:null;
+    return {earnDate:earnDate,revGrowth:g(fd.revenueGrowth),epsGrowth:g(fd.earningsGrowth),margins:g(ks.profitMargins),d2e:g(fd.debtToEquity),fcf:g(fd.freeCashflow),recMean:g(fd.recommendationMean),
+      recTrend:rt?{strongBuy:rt.strongBuy||0,buy:rt.buy||0,hold:rt.hold||0,sell:(rt.sell||0)+(rt.strongSell||0)}:null,
+      insiderBuys:g(ns.buyInfoCount),insiderSells:g(ns.sellInfoCount),insiderNetShares:g(ns.netInfoShares),insiderPeriod:ns.period||"6m",
+      marketCap:g(sd.marketCap)||g(ks.enterpriseValue),floatShares:g(ks.floatShares),sharesShort:g(ks.sharesShort),
+      shortPctFloat:g(ks.shortPercentOfFloat),insiders:g(ks.heldPercentInsiders),institutions:g(ks.heldPercentInstitutions),
+      beta:g(ks.beta),targetMean:g(fd.targetMeanPrice),recommendation:fd.recommendationKey||null,avgVol:g(sd.averageVolume)};
+  }catch(e){return null;}
+}
+async function getMarket(t,range,interval,fast){
+  const j=await (fast?ygetFast:yget)("https://query1.finance.yahoo.com/v8/finance/chart/"+t+"?range="+(range||"6mo")+"&interval="+(interval||"1d")+"&includePrePost=false");
+  const res=j&&j.chart&&j.chart.result&&j.chart.result[0];
+  if(!res)throw new Error('ticker "'+t+'" not found');
+  const m=res.meta||{}, q=(res.indicators&&res.indicators.quote&&res.indicators.quote[0])||{};
+  const bars=(res.timestamp||[]).map((ts,i)=>({t:ts*1000,o:q.open&&q.open[i],h:q.high&&q.high[i],l:q.low&&q.low[i],c:q.close&&q.close[i],v:q.volume&&q.volume[i]})).filter((b)=>b.c!=null);
+  return {ticker:t,name:m.longName||m.shortName||t,price:m.regularMarketPrice!=null?m.regularMarketPrice:(bars.length?bars[bars.length-1].c:null),
+    prevClose:m.chartPreviousClose!=null?m.chartPreviousClose:m.previousClose,exchange:m.fullExchangeName||m.exchangeName||"",
+    marketTime:m.regularMarketTime?m.regularMarketTime*1000:null,high52w:m.fiftyTwoWeekHigh,low52w:m.fiftyTwoWeekLow,bars:bars};
+}
+async function getScreener(list,fast){
+  const j=await (fast?ygetFast:yget)("https://query1.finance.yahoo.com/v1/finance/screener/predefined/saved?scrIds="+list+"&count=15");
+  const qs=(j&&j.finance&&j.finance.result&&j.finance.result[0]&&j.finance.result[0].quotes)||[];
+  return qs.map((x)=>({ticker:x.symbol,name:x.shortName||x.longName||x.symbol,price:x.regularMarketPrice,
+    changePct:x.regularMarketChangePercent,volume:x.regularMarketVolume,avgVolume:x.averageDailyVolume3Month}));
+}
+async function getNews(t){
+  const j=await yget("https://query1.finance.yahoo.com/v1/finance/search?q="+t+"&newsCount=6&quotesCount=0");
+  return (j.news||[]).map((n)=>({title:n.title,publisher:n.publisher,url:n.link,time:n.providerPublishTime?n.providerPublishTime*1000:null}));
+}
+
+/* ---- levels & trade plan from real candles ---- */
+function sma(closes,p){if(closes.length<p)return null;let s=0;for(let i=closes.length-p;i<closes.length;i++)s+=closes[i];return s/p;}
+function findLevels(bars,lastClose){
+  const w=3,raw=[];
+  for(let i=w;i<bars.length-w;i++){
+    let hi=true,lo=true;
+    for(let k=i-w;k<=i+w;k++){if(k===i)continue;if(bars[k].h>=bars[i].h)hi=false;if(bars[k].l<=bars[i].l)lo=false;}
+    if(hi)raw.push({price:bars[i].h});
+    if(lo)raw.push({price:bars[i].l});
+  }
+  raw.sort((a,b)=>a.price-b.price);
+  const merged=[];
+  for(const lv of raw){
+    const last=merged[merged.length-1];
+    if(last&&Math.abs(lv.price-last.price)/last.price<0.015){last.price=(last.price+lv.price)/2;last.hits++;}
+    else merged.push({price:lv.price,hits:1});
+  }
+  return {res:merged.filter((m)=>m.price>lastClose).sort((a,b)=>a.price-b.price).slice(0,3),
+          sup:merged.filter((m)=>m.price<=lastClose).sort((a,b)=>b.price-a.price).slice(0,3)};
+}
+function mkPlan(price,levels,dir,bars){
+  let r1=levels.res[0]&&levels.res[0].price, r2=levels.res[1]&&levels.res[1].price;
+  let s1=levels.sup[0]&&levels.sup[0].price, s2=levels.sup[1]&&levels.sup[1].price;
+  /* at range extremes the ladder runs out — derive from recent candles */
+  if(bars&&bars.length>12){
+    let hiN=-Infinity,loN=Infinity;
+    for(let i=bars.length-12;i<bars.length;i++){if(bars[i].h>hiN)hiN=bars[i].h;if(bars[i].l<loN)loN=bars[i].l;}
+    if(!r1)r1=hiN; if(!s1)s1=loN;
+  }
+  if(!r1||!s1||r1<=s1)return null;
+  /* MIN MOVE FILTER: a target under ~4% from trigger is a breakeven grind after slippage.
+     Extend to the next real level or a 2.5R projection, whichever gives a tradeable move. */
+  const _lab=(typeof getLabConfig==="function")?getLabConfig():null;
+  const MINPCT=_lab?Math.max(_lab.minPct/100,0.02):0.04, MINRR=_lab?_lab.tmult:1.8;
+  if(dir==="short"){
+    const trg=s1, stp=r1, risk=stp-trg;
+    if(risk<=0)return null;
+    let tgt=s2||(trg-2*risk);
+    if((trg-tgt)/trg<MINPCT)tgt=Math.min(tgt,trg*(1-MINPCT));      /* too small a move: extend */
+    if((trg-tgt)/risk<MINRR)tgt=Math.min(tgt,trg-MINRR*risk);      /* thin payoff: project a real target */
+    const movePct=(trg-tgt)/trg*100, rr=(trg-tgt)/risk;
+    /* if the stop is so wide that a real target needs an unrealistic move, skip it */
+    if(movePct<3.5||rr<MINRR||movePct>60)return null;
+    return {bias:"short",trigger:+trg.toFixed(2),target:+tgt.toFixed(2),stop:+stp.toFixed(2),movePct:+movePct.toFixed(1),rr:+rr.toFixed(2)};
+  }
+  const trg=r1, stp=s1, risk=trg-stp;
+  if(risk<=0)return null;
+  let tgt=r2||(trg+2*risk);
+  if((tgt-trg)/trg<MINPCT)tgt=Math.max(tgt,trg*(1+MINPCT));
+  if((tgt-trg)/risk<MINRR)tgt=Math.max(tgt,trg+MINRR*risk);
+  const movePct=(tgt-trg)/trg*100, rr=(tgt-trg)/risk;
+  if(movePct<3.5||rr<MINRR||movePct>60)return null;
+  return {bias:"long",trigger:+trg.toFixed(2),target:+tgt.toFixed(2),stop:+stp.toFixed(2),movePct:+movePct.toFixed(1),rr:+rr.toFixed(2)};
+}
+/* ---- PATTERN ENGINE: reads actual chart structure ---- */
+function detectPatterns(bars,price){
+  const out=[],w=3,sh=[],sl=[];
+  for(let i=w;i<bars.length-w;i++){
+    let hi=true,lo=true;
+    for(let k=i-w;k<=i+w;k++){if(k===i)continue;if(bars[k].h>=bars[i].h)hi=false;if(bars[k].l<=bars[i].l)lo=false;}
+    if(hi)sh.push({i:i,p:bars[i].h});
+    if(lo)sl.push({i:i,p:bars[i].l});
+  }
+  if(sh.length>=2&&sl.length>=2){
+    const hh=sh[sh.length-1].p>sh[sh.length-2].p, hl=sl[sl.length-1].p>sl[sl.length-2].p;
+    if(hh&&hl)out.push({dir:1,text:"PATTERN: higher highs + higher lows — textbook uptrend structure"});
+    else if(!hh&&!hl)out.push({dir:-1,text:"PATTERN: lower highs + lower lows — textbook downtrend structure"});
+    else if(!hh&&hl)out.push({dir:0,text:"PATTERN: triangle coil (lower highs vs higher lows) — big move loading, direction unconfirmed"});
+  }
+  if(sh.length>=2){
+    const a=sh[sh.length-2],b=sh[sh.length-1];
+    if(Math.abs(a.p-b.p)/a.p<0.02&&b.i-a.i>=5&&price<Math.min(a.p,b.p)*0.99)
+      out.push({dir:-1,text:"PATTERN: double top at "+fmtPx((a.p+b.p)/2)+" — rejected twice, bearish until that level reclaims"});
+  }
+  if(sl.length>=2){
+    const a=sl[sl.length-2],b=sl[sl.length-1];
+    if(Math.abs(a.p-b.p)/a.p<0.02&&b.i-a.i>=5&&price>Math.max(a.p,b.p)*1.01)
+      out.push({dir:1,text:"PATTERN: double bottom at "+fmtPx((a.p+b.p)/2)+" — buyers defended it twice, base for a move up"});
+  }
+  if(bars.length>22){
+    let hi20=-Infinity,lo20=Infinity;
+    for(let i=bars.length-21;i<bars.length-1;i++){if(bars[i].h>hi20)hi20=bars[i].h;if(bars[i].l<lo20)lo20=bars[i].l;}
+    const c=bars[bars.length-1].c;
+    if(c>hi20)out.push({dir:1,text:"PATTERN: closing ABOVE the prior 20-session high ("+fmtPx(hi20)+") — live breakout"});
+    else if(c<lo20)out.push({dir:-1,text:"PATTERN: closing BELOW the prior 20-session low ("+fmtPx(lo20)+") — live breakdown"});
+  }
+  if(bars.length>16){
+    const c=bars.map((b)=>b.c);
+    const run=(c[c.length-6]-c[c.length-16])/c[c.length-16];
+    let hi5=-Infinity,lo5=Infinity;
+    for(let i=bars.length-5;i<bars.length;i++){if(bars[i].h>hi5)hi5=bars[i].h;if(bars[i].l<lo5)lo5=bars[i].l;}
+    const tight=(hi5-lo5)/price;
+    if(run>0.15&&tight<0.07)out.push({dir:1,text:"PATTERN: bull flag — +"+(run*100).toFixed(0)+"% run then a tight "+(tight*100).toFixed(1)+"% coil; continuation if "+fmtPx(hi5)+" breaks on volume"});
+    if(run<-0.15&&tight<0.07)out.push({dir:-1,text:"PATTERN: bear flag — "+(run*100).toFixed(0)+"% drop then a weak coil; continuation lower if "+fmtPx(lo5)+" gives out"});
+  }
+  if(bars.length>=2){
+    const g=(bars[bars.length-1].o-bars[bars.length-2].c)/bars[bars.length-2].c;
+    if(g>0.05)out.push({dir:1,text:"PATTERN: gapped up "+(g*100).toFixed(1)+"% — something changed overnight; bullish while the gap holds"});
+    if(g<-0.05)out.push({dir:-1,text:"PATTERN: gapped down "+Math.abs(g*100).toFixed(1)+"% — broken tape until that gap fills"});
+  }
+  return out;
+}
+/* ---- NEWS SENTIMENT: scores real headlines ---- */
+const NEWS_POS=["beat","beats","raise","raises","upgrade","upgraded","approval","approved","approves","contract","wins","award","partnership","record","surge","buyback","acquisition","acquires","expands","breakthrough","soars","rally","jumps"];
+const NEWS_NEG=["miss","misses","cut","cuts","downgrade","downgraded","offering","dilution","investigation","lawsuit","probe","recall","bankruptcy","delist","warning","plunge","layoffs","halts","fraud","sinks","tumbles","falls short"];
+function classifyHeadline(title){
+  const t=(title||"").toLowerCase();
+  /* check BOTH lists; when a headline contains bullish and bearish words
+     ("SEC probe expands"), the bearish read wins — risk gets the benefit of the doubt */
+  let pos=0,neg=0;
+  for(const w of NEWS_POS){if(t.indexOf(w)>=0)pos++;}
+  for(const w of NEWS_NEG){if(t.indexOf(w)>=0)neg++;}
+  if(neg>0)return -1;
+  if(pos>0)return 1;
+  return 0;
+}
+function scoreNews(news){
+  let s=0;const hits=[];
+  for(const n of (news||[])){
+    const d=classifyHeadline(n.title);
+    if(d!==0){s+=d;hits.push({dir:d,title:n.title});}
+  }
+  return {score:s,hits:hits};
+}
+
+/* ---- THE RATING ENGINE: long/short verdict, evidence behind everything ---- */
+function rateSetup(price,bars,levels,stats,patterns,newsScore){
+  const closes=bars.map((b)=>b.c);
+  const s20=sma(closes,20),s50=sma(closes,50);
+  const bull=[],bear=[];let bs=0,rs=0;
+
+  if(bars.length<15){
+    bear.push("only "+bars.length+" sessions of history — too thin to map patterns or levels honestly");
+    return {grade:"C",verdict:"STAND ASIDE — NOT ENOUGH DATA",dir:"neutral",col:"amber",bull:bull,bear:bear,plan:null,
+      summary:"Not enough trading history to call direction. New listings need weeks of candles before structure means anything."};
+  }
+  /* chart patterns first — they carry weight */
+  for(const p of (patterns||[])){
+    if(p.dir>0){bs+=1.5;bull.push(p.text);}
+    else if(p.dir<0){rs+=1.5;bear.push(p.text);}
+    else {bear.push(p.text);}
+  }
+  /* trend */
+  if(s20){
+    const d20=((price-s20)/s20*100);
+    if(price>s20){bs++;bull.push("trading "+d20.toFixed(1)+"% above the 20-day ("+fmtPx(s20)+") — short-term trend up");}
+    else{rs++;bear.push("trading "+Math.abs(d20).toFixed(1)+"% below the 20-day ("+fmtPx(s20)+") — short-term trend down");}
+  }
+  if(s20&&s50){
+    if(s20>s50){bs++;bull.push("20-day above 50-day ("+fmtPx(s20)+" > "+fmtPx(s50)+") — bullish structure");}
+    else{rs++;bear.push("20-day below 50-day ("+fmtPx(s20)+" < "+fmtPx(s50)+") — bearish structure");}
+  }
+  /* momentum */
+  if(closes.length>=6){
+    const m5=((price-closes[closes.length-6])/closes[closes.length-6]*100);
+    if(m5>=3){bs++;bull.push("+"+m5.toFixed(1)+"% over 5 sessions — momentum with the bulls");}
+    else if(m5<=-3){rs++;bear.push(m5.toFixed(1)+"% over 5 sessions — sellers driving");}
+  }
+  /* volume */
+  const vol=bars[bars.length-1].v||0;let av=0,n=0;
+  for(let i=Math.max(0,bars.length-21);i<bars.length-1;i++){av+=(bars[i].v||0);n++;}
+  const rvol=n&&av?vol/(av/n):0;
+  if(rvol>=1.5){
+    const lastUp=bars[bars.length-1].c>=bars[bars.length-1].o;
+    if(lastUp){bs++;bull.push("relative volume "+rvol.toFixed(1)+"× on a green candle — real buying, not drift");}
+    else{rs++;bear.push("relative volume "+rvol.toFixed(1)+"× on a RED candle — that's distribution, heavy selling");}
+  } else {bear.push("relative volume "+(rvol?rvol.toFixed(1):"?")+"× — volume asleep, any move is suspect until it wakes up");}
+  /* range position */
+  let hi=-Infinity,lo=Infinity;
+  for(const b of bars){if(b.h!=null&&b.h>hi)hi=b.h;if(b.l!=null&&b.l<lo)lo=b.l;}
+  if(hi>lo){
+    const pos=((price-lo)/(hi-lo)*100);
+    if(pos>=70){bs++;bull.push("top "+(100-pos).toFixed(0)+"% of its 6-month range ("+fmtPx(lo)+"–"+fmtPx(hi)+") — strength");}
+    else if(pos<=30){rs++;bear.push("bottom "+pos.toFixed(0)+"% of its 6-month range — weakness, knife-catch zone for longs");}
+  }
+  /* insiders */
+  if(stats&&stats.insiderBuys!=null&&stats.insiderSells!=null){
+    const b=stats.insiderBuys,s=stats.insiderSells;
+    if(b>0&&b>=s*2){bs++;bull.push("INSIDERS: "+b+" buy transactions vs "+s+" sells last "+stats.insiderPeriod+(stats.insiderNetShares>0?" (net +"+fmtBig(stats.insiderNetShares)+" shares)":"")+" — people with the real info are buying");}
+    else if(s>0&&s>=b*3){rs++;bear.push("INSIDERS: "+s+" sell transactions vs "+b+" buys last "+stats.insiderPeriod+" — the people who know best are heading for the door");}
+    else{bull.push("INSIDERS: "+b+" buys / "+s+" sells last "+stats.insiderPeriod+" — nothing loud either way");}
+  }
+  /* news sentiment */
+  if(newsScore&&newsScore.hits.length){
+    if(newsScore.score>0){bs++;bull.push("NEWS FLOW leans positive ("+newsScore.hits.filter(function(h){return h.dir>0}).length+" bullish headlines) — e.g. \""+(newsScore.hits.filter(function(h){return h.dir>0})[0]||{}).title+"\"");}
+    else if(newsScore.score<0){rs++;bear.push("NEWS FLOW leans negative ("+newsScore.hits.filter(function(h){return h.dir<0}).length+" bearish headlines) — e.g. \""+(newsScore.hits.filter(function(h){return h.dir<0})[0]||{}).title+"\"");}
+  }
+  /* company file */
+  if(stats){
+    if(stats.shortPctFloat!=null){
+      const spf=stats.shortPctFloat*100;
+      if(spf>=15){bs++;bull.push("short interest "+spf.toFixed(1)+"% of float ("+fmtBig(stats.sharesShort)+" short) — squeeze fuel on a breakout, but also confirms smart money leaning short");}
+      else if(spf>=8)bull.push("short interest "+spf.toFixed(1)+"% of float — some squeeze potential");
+    }
+    if(stats.floatShares!=null&&stats.floatShares<2e7)bull.push("tiny "+fmtBig(stats.floatShares)+" float — violent mover both directions, size small");
+    if(stats.targetMean!=null&&price){
+      const up=((stats.targetMean-price)/price*100);
+      if(up>=15){bs++;bull.push("street target "+fmtPx(stats.targetMean)+" is "+up.toFixed(0)+"% above"+(stats.recommendation?" ("+stats.recommendation+")":""));}
+      else if(up<=-10){rs++;bear.push("street target "+fmtPx(stats.targetMean)+" is "+Math.abs(up).toFixed(0)+"% BELOW price — even the cheerleaders think it's ahead of itself");}
+    }
+  }
+  /* earnings radar — the thing that blindsides trades */
+  if(stats&&stats.earnDate){
+    const days=Math.round((stats.earnDate-Date.now())/86400000);
+    if(days>=0&&days<=14){rs++;bear.push("⚠ EARNINGS IN "+days+" DAY"+(days===1?"":"S")+" ("+new Date(stats.earnDate).toLocaleDateString()+") — binary event; the print overrides every technical setup and IV crush eats options after it");}
+    else if(days>14&&days<=35){bear.push("earnings "+new Date(stats.earnDate).toLocaleDateString()+" ("+days+"d out) — fine for quick swings; plan the exit before it");}
+  }
+  /* extension */
+  if(s20&&(price-s20)/s20>0.18){rs++;bear.push("extended "+(((price-s20)/s20)*100).toFixed(0)+"% above its 20-day — late entries here are exit liquidity");}
+  if(s20&&(s20-price)/s20>0.18){bs+=0.5;bear.push("stretched "+(((s20-price)/s20)*100).toFixed(0)+"% below its 20-day — shorts pressing here risk a snapback bounce");}
+
+  /* verdict */
+  const margin=bs-rs, strength=Math.abs(margin);
+  let dir,verdict,col;
+  if(margin>=2){dir="long";col="up";verdict=strength>=5?"STRONG LONG — BUY SETUP":"LEAN LONG";}
+  else if(margin<=-2){dir="short";col="down";verdict=strength>=5?"STRONG SHORT — LOOK DOWN":"LEAN SHORT";}
+  else {dir="neutral";col="amber";verdict="STAND ASIDE — leans "+(bs>=rs?"LONG":"SHORT")+" ("+bs.toFixed(1)+" vs "+rs.toFixed(1)+") but below trade threshold";}
+  const grade=strength>=6?"A":strength>=4?"B":strength>=2?"C":"D";
+  /* conviction = evidence margin, tiered. NOT a win probability — the RECORD tab earns those numbers */
+  let convTier,convLabel,convMult;
+  if(strength>=6){convTier=5;convLabel="HIGH";convMult=1.0;}
+  else if(strength>=4.5){convTier=4;convLabel="SOLID";convMult=0.75;}
+  else if(strength>=3.5){convTier=3;convLabel="DECENT";convMult=0.5;}
+  else if(strength>=2.5){convTier=2;convLabel="MODERATE";convMult=0.5;}
+  else{convTier=1;convLabel="LOW";convMult=0.25;}
+  /* confidence % = evidence margin normalized. Labeled as evidence strength, not a promised win rate. */
+  const confPct=Math.max(50,Math.min(95,Math.round(50+strength*6)));
+  const conv={tier:convTier,label:convLabel,mult:convMult,margin:strength,conf:confPct};
+  const plan=dir==="neutral"?null:mkPlan(price,levels,dir,bars);
+  if(plan){plan.convLabel=convLabel;plan.convTier=convTier;plan.convMult=convMult;plan.conf=confPct;}
+  const summary=(dir==="long"
+    ? "Direction: LONG. Strongest evidence: "+(bull[0]||"")+" Biggest threat to the trade: "+(bear[0]||"nothing loud right now.")
+    : dir==="short"
+    ? "Direction: SHORT. Strongest evidence: "+(bear[0]||"")+" What squeezes you: "+(bull[0]||"nothing loud right now.")
+    : "No edge either way — bulls have "+bs.toFixed(1)+" points of evidence, bears have "+rs.toFixed(1)+". Conflicted tape is a sit-out, not a coin flip to force.");
+  return {grade:grade,verdict:verdict,dir:dir,col:col,bullScore:bs,bearScore:rs,bull:bull,bear:bear,plan:plan,summary:summary,rvol:rvol,conv:conv};
+}
+function convHTML(conv,mult){
+  if(!conv)return "";
+  const bar="█".repeat(conv.tier)+"░".repeat(5-conv.tier);
+  const col=conv.tier>=4?"up":conv.tier>=3?"amber":"down";
+  return '<div class="mono" style="font-size:12px;margin-top:8px">CONFIDENCE <span class="'+col+'" style="font-size:16px;font-weight:700">'+conv.conf+'%</span> · <span class="'+col+'">'+bar+' '+conv.tier+'/5 '+conv.label+'</span> (evidence margin '+conv.margin.toFixed(1)+') · sizing at '+Math.round(conv.mult*100)+'% of your risk'
+    +'<br><span style="color:var(--muted);font-size:10px">conviction = how lopsided the evidence is, NOT a win probability — real per-tier win rates build in RECORD as calls grade</span></div>';
+}
+function ratingHTML(rating){
+  return '<div class="label">DEUCE RATING — LIVE, RECOMPUTED EVERY REFRESH</div>'
+  +'<div class="row" style="align-items:center;gap:20px"><span class="gradebig '+rating.col+'">'+rating.grade+'</span>'
+  +'<span class="mono '+rating.col+'" style="font-size:16px;font-weight:700;letter-spacing:1px">'+rating.verdict+'</span></div>'
+  +'<div class="mono small" style="margin-top:6px">bull evidence '+(+rating.bullScore||0).toFixed(1)+' pts · bear evidence '+(+rating.bearScore||0).toFixed(1)+' pts</div>'
+  +convHTML(rating.conv,rating.conv?rating.conv.mult:1)
+  +'<p style="font-size:14px;line-height:1.65;margin:12px 0">'+esc(rating.summary)+'</p>'
+  +(rating.bull.length?'<div class="eyebrow" style="color:var(--up)">EVIDENCE FOR THE BULLS</div>'+rating.bull.map((r)=>'<div class="ev"><span class="up">▲</span> '+esc(r)+'</div>').join(""):"")
+  +(rating.bear.length?'<div class="eyebrow" style="color:var(--down);margin-top:10px">EVIDENCE FOR THE BEARS</div>'+rating.bear.map((r)=>'<div class="ev"><span class="down">▼</span> '+esc(r)+'</div>').join(""):"")
+  +'<div class="small" style="margin-top:10px">rule-based read of live data · not financial advice — your trade, your call</div>';
+}
+/* ---------- LOOKUP (with live auto-refresh) ---------- */
+let current=null, liveTimer=null;
+function ladderHTML(levels,price){
+  let h='<div class="label">LEVEL LADDER (live candles)</div><div class="ladder">';
+  const rows=[].concat(levels.res.slice().reverse().map((l)=>({p:l.price,k:"R",h:l.hits})),[{p:price,k:"NOW"}],levels.sup.map((l)=>({p:l.price,k:"S",h:l.hits})));
+  for(const r of rows){
+    const col=r.k==="R"?"down":r.k==="S"?"up":"amber";
+    h+='<div class="lrow"><span class="'+col+'" style="font-size:11px;width:30px">'+(r.k==="NOW"?"▶":r.k)+'</span><span class="'+(r.k==="NOW"?"amber":"")+'" style="font-size:'+(r.k==="NOW"?18:14)+'px;font-weight:'+(r.k==="NOW"?700:400)+'">'+fmtPx(r.p)+'</span><span class="small">'+(r.k==="NOW"?"live":(r.h>1?"×"+r.h+" touches":""))+'</span></div>';
+  }
+  return h+'</div>';
+}
+function planHTML(plan){
+  if(!plan)return'<div class="label">BOT\'S CALL</div><div class="small">tape is conflicted — no trade to call until it picks a side</div>';
+  const short=plan.bias==="short";
+  return '<div class="label">BOT\'S CALL</div>'
+  +'<div class="mono" style="font-size:13px;line-height:2"><span class="'+(short?"down":"up")+'" style="font-weight:700">'+(short?"SHORT":"LONG")+'</span> · trigger <span class="amber">'+fmtPx(plan.trigger)+'</span> ('+(short?"break below":"break above")+') · target <span class="up">'+fmtPx(plan.target)+'</span> · stop <span class="down">'+fmtPx(plan.stop)+'</span></div>'
+  +'<div class="mono" style="font-size:12px;line-height:1.9">POTENTIAL MOVE <span class="up" style="font-weight:700">'+(plan.movePct||"—")+'%</span> to target · reward:risk <span class="amber">'+(plan.rr||"—")+':1</span></div>'
+  +'<div class="mono small" style="margin-top:6px"><span class="eyebrow">SIZE IT</span> $'+Math.round(getRisk()*(plan.convMult||1))+' at risk ('+(plan.convLabel||"—")+' conviction) → '+(sizeShares(plan.trigger,plan.stop,plan.convMult)||"—")+' shares at trigger</div>'
+  +'<button class="ghost" onclick="logCall(current)">LOG THIS CALL</button>';
+}
+async function refreshLookup(t,firstRun){
+  const mkt=await getMarket(t,"6mo","1d");
+  if(firstRun){
+    currentStats=await getStats(t);
+    try{currentNews=await getNews(t);}catch(e){currentNews=[];}
+  }
+  const price=mkt.price, chg=mkt.prevClose?((price-mkt.prevClose)/mkt.prevClose)*100:0;
+  const levels=findLevels(mkt.bars,price);
+  const patterns=detectPatterns(mkt.bars,price);
+  const rating=rateSetup(price,mkt.bars,levels,currentStats,patterns,scoreNews(currentNews));
+  const plan=rating.plan;
+  current={ticker:t,name:mkt.name,price:price,plan:plan};
+  if(firstRun){
+    $("lookupOut").innerHTML=
+      '<div class="card"><div class="row"><span class="tk">'+esc(t)+'</span><span class="px" id="livePx"></span><span class="mono" id="liveChg" style="font-size:15px"></span></div>'
+      +'<div class="small" style="margin-top:5px">'+esc(mkt.name)+' · '+esc(mkt.exchange)+'</div>'
+      +'<div class="small amber" style="margin-top:5px" id="liveTime"></div></div>'
+      +'<div class="card" id="ratingCard"></div>'
+      +'<div class="card" id="statsCard" style="display:none"></div>'
+      +'<div class="tvbox" id="tvchart"></div>'
+      +'<div class="label" style="margin-top:16px">TRADINGVIEW\'S LIVE INDICATOR RATING (second opinion)</div>'
+      +'<div class="tvbox" id="tvta" style="height:400px"></div>'
+      +'<div class="card" id="ladderCard"></div>'
+      +'<div class="card" id="planCard"></div>'
+      +'<div id="newsOut"></div>';
+    new TradingView.widget({symbol:t,container_id:"tvchart",autosize:true,theme:"dark",style:"1",interval:"D",timezone:"exchange",hide_side_toolbar:false,allow_symbol_change:false,backgroundColor:"#0C0E12"});
+    tvEmbed("tvta","embed-widget-technical-analysis.js",{symbol:t,colorTheme:"dark",isTransparent:true,width:"100%",height:390,interval:"1D",disableInterval:false,showIntervalTabs:true,locale:"en"});
+    if(currentNews&&currentNews.length){
+      $("newsOut").innerHTML='<div class="label" style="margin:16px 0 0 4px">RECENT NEWS (LIVE, SCORED INTO THE GRADE)</div>'+currentNews.map((x)=>'<a class="newsitem" href="'+esc(x.url)+'" target="_blank" rel="noreferrer"><span style="font-size:14px">'+esc(x.title)+'</span><div class="small" style="margin-top:3px">'+esc(x.publisher||"")+' · '+(x.time?new Date(x.time).toLocaleDateString():"")+'</div></a>').join("");
+    }
+  }
+  $("livePx").textContent=fmtPx(price);
+  $("liveChg").className="mono "+(chg>=0?"up":"down");
+  $("liveChg").innerHTML=(chg>=0?"▲":"▼")+" "+chg.toFixed(2)+"%";
+  $("liveTime").textContent="⏱ live · updates every 45s · last: "+new Date().toLocaleTimeString();
+  $("ratingCard").innerHTML=ratingHTML(rating);
+  if(currentStats){
+    const s=currentStats;
+    $("statsCard").style.display="";
+    $("statsCard").innerHTML='<div class="label">COMPANY FILE</div><div class="mono" style="font-size:12px;line-height:2.1">'
+      +'mkt cap <span class="amber">'+fmtBig(s.marketCap)+'</span>'
+      +' · float <span class="amber">'+fmtBig(s.floatShares)+'</span>'
+      +(s.shortPctFloat!=null?' · short float <span class="'+(s.shortPctFloat>=0.15?"up":"amber")+'">'+(s.shortPctFloat*100).toFixed(1)+'%</span>':'')
+      +(s.insiderBuys!=null?' · insider buys/sells ('+esc(s.insiderPeriod)+') <span class="amber">'+s.insiderBuys+'/'+s.insiderSells+'</span>':'')
+      +(s.institutions!=null?' · institutions '+(s.institutions*100).toFixed(0)+'%':'')
+      +(s.beta!=null?' · beta '+s.beta.toFixed(1):'')
+      +(s.targetMean!=null?' · street target <span class="amber">'+fmtPx(s.targetMean)+'</span>':'')
+      +(s.recommendation?' ('+esc(s.recommendation)+')':'')
+      +'</div>';
+  }
+  $("ladderCard").innerHTML=ladderHTML(levels,price);
+  $("planCard").innerHTML=planHTML(plan);
+  markLive(t+" "+fmtPx(price));
+}
+async function runLookup(){
+  const t=$("tickerInput").value.trim().toUpperCase();
+  if(!t)return;
+  if(liveTimer){clearInterval(liveTimer);liveTimer=null;}
+  $("lookupBtn").disabled=true;
+  $("lookupOut").innerHTML="";
+  $("lookupStatus").innerHTML='<p class="status">▸ pulling live data for '+esc(t)+'…</p>';
+  try{
+    await refreshLookup(t,true);
+    $("lookupStatus").innerHTML="";
+    liveTimer=setInterval(function(){refreshLookup(t,false).catch(function(){});},45000);
+  }catch(e){
+    $("lookupStatus").innerHTML="";
+    $("lookupOut").innerHTML='<p class="card err">'+esc(e.message)+'</p>'
+      +'<div class="tvbox" id="tvchart"></div>'
+      +'<div class="label" style="margin-top:16px">TRADINGVIEW\'S LIVE INDICATOR RATING</div>'
+      +'<div class="tvbox" id="tvta" style="height:400px"></div>';
+    new TradingView.widget({symbol:t,container_id:"tvchart",autosize:true,theme:"dark",style:"1",interval:"D",timezone:"exchange",hide_side_toolbar:false,allow_symbol_change:false,backgroundColor:"#0C0E12"});
+    tvEmbed("tvta","embed-widget-technical-analysis.js",{symbol:t,colorTheme:"dark",isTransparent:true,width:"100%",height:390,interval:"1D",disableInterval:false,showIntervalTabs:true,locale:"en"});
+  }finally{$("lookupBtn").disabled=false;}
+}
+
+/* ---------- BOT PICKS (live scan + live re-pricing + full evidence) ---------- */
+window._picks=[];let picksTimer=null;
+function pickCardHTML(p,i){
+  let h='<div class="card" id="pick'+i+'"><div class="row">'
+    +'<span class="tk" style="font-size:22px">'+esc(p.ticker)+'</span>'
+    +'<span class="mono" style="font-size:16px" id="pickpx'+i+'">'+fmtPx(p.price)+'</span>'
+    +'<span class="mono '+(p.changePct>=0?"up":"down")+'" style="font-size:13px" id="pickchg'+i+'">'+(p.changePct>=0?"▲":"▼")+' '+(+p.changePct).toFixed(1)+'%</span>'
+    +'<span class="small">rvol '+(p.rvol?p.rvol.toFixed(1)+"×":"—")+'</span>'
+    +(p.rating?'<span class="mono '+p.rating.col+'" style="font-size:14px;font-weight:700">'+p.rating.grade+' · '+p.rating.verdict+'</span>':"")
+    +'</div><div class="small" style="margin-top:6px">'+esc(p.name)+'</div>';
+  if(p.rating){
+    h+='<p style="font-size:13px;line-height:1.6;margin:10px 0">'+esc(p.rating.summary)+'</p>';
+    if(p.rating.bull.length)h+='<div class="eyebrow" style="color:var(--up)">EVIDENCE FOR</div>'+p.rating.bull.map((r)=>'<div class="ev"><span class="up">▲</span> '+esc(r)+'</div>').join("");
+    if(p.rating.bear.length)h+='<div class="eyebrow" style="color:var(--down);margin-top:8px">EVIDENCE AGAINST</div>'+p.rating.bear.map((r)=>'<div class="ev"><span class="down">▼</span> '+esc(r)+'</div>').join("");
+  }
+  if(p.plan)h+='<div class="mono small" style="margin-top:10px"><span class="'+(p.plan.bias==="short"?"down":"up")+'" style="font-weight:700">'+p.plan.bias.toUpperCase()+'</span> · trigger <span class="amber">'+fmtPx(p.plan.trigger)+'</span> · target <span class="up">'+fmtPx(p.plan.target)+'</span> · stop <span class="down">'+fmtPx(p.plan.stop)+'</span></div>'
+        +'<div class="mono" style="font-size:12px">POTENTIAL MOVE <span class="up" style="font-weight:700">'+(p.plan.movePct||"—")+'%</span> · R:R '+(p.plan.rr||"—")+':1</div>'
+        +'<div class="mono" style="font-size:11px;margin-top:4px">CONF '+p.rating.conv.conf+'% · '+("█".repeat(p.rating.conv.tier)+"░".repeat(5-p.rating.conv.tier))+' '+p.rating.conv.tier+'/5 '+p.rating.conv.label+' · $'+Math.round(getRisk()*p.rating.conv.mult)+' risk → '+(sizeShares(p.plan.trigger,p.plan.stop,p.rating.conv.mult)||"—")+' shares</div>'
+    +'<button class="ghost" onclick="logCall(_picks['+i+'])">LOG CALL</button>';
+  return h+'</div>';
+}
+async function refreshPickPrices(){
+  for(let i=0;i<window._picks.length;i++){
+    const p=window._picks[i];
+    try{
+      const m=await getMarket(p.ticker,"1d","1d");
+      if(m.price!=null){
+        p.price=m.price;
+        const chg=m.prevClose?((m.price-m.prevClose)/m.prevClose)*100:p.changePct;
+        p.changePct=chg;
+        const px=$("pickpx"+i),cg=$("pickchg"+i);
+        if(px)px.textContent=fmtPx(m.price);
+        if(cg){cg.className="mono "+(chg>=0?"up":"down");cg.innerHTML=(chg>=0?"▲":"▼")+" "+(+chg).toFixed(1)+"%";}
+      }
+    }catch(e){}
+  }
+  markLive("picks re-priced");
+}
+async function runPicks(){
+  if(picksTimer){clearInterval(picksTimer);picksTimer=null;}
+  $("picksBtn").disabled=true;
+  $("picksStatus").innerHTML='<p class="status">▸ hitting live screeners…</p>';
+  $("picksOut").innerHTML="";
+  try{
+    const results=await Promise.allSettled([getScreener("day_gainers"),getScreener("small_cap_gainers")]);
+    const seen=new Set(),pool=[];
+    for(const r of results){ if(r.status!=="fulfilled")continue;
+      for(const q of r.value){ if(seen.has(q.ticker)||q.price==null||q.price<0.5)continue; seen.add(q.ticker);
+        pool.push(Object.assign({},q,{rvol:q.avgVolume?q.volume/q.avgVolume:0})); } }
+    if(!pool.length)throw new Error("screeners unreachable right now — LIVE MARKET MOVERS below is still live; tap any name into LOOKUP");
+    pool.sort((a,b)=>b.rvol-a.rvol);
+    const top=pool.slice(0,4);
+    $("picksStatus").innerHTML='<p class="status">▸ pulling candles, rating each with full evidence…</p>';
+    window._picks=[];
+    for(const p of top){
+      try{
+        const mkt=await getMarket(p.ticker,"6mo","1d");
+        const levels=findLevels(mkt.bars,p.price);
+        const patterns=detectPatterns(mkt.bars,p.price);
+        const rating=rateSetup(p.price,mkt.bars,levels,null,patterns,null);
+        window._picks.push(Object.assign({},p,{plan:rating.plan,rating:rating}));
+      }catch(e){window._picks.push(p);}
+    }
+    $("picksStatus").innerHTML="";
+    $("picksOut").innerHTML=window._picks.map(pickCardHTML).join("")
+      +'<p class="small" style="margin-top:10px">live gainers + small-cap screeners ranked by relative volume · prices auto-refresh every 60s · not financial advice</p>';
+    markLive("bot picks scanned");
+    picksTimer=setInterval(function(){refreshPickPrices().catch(function(){});},90000);
+  }catch(e){
+    $("picksStatus").innerHTML='<p class="card err">'+esc(e.message)+'</p>';
+  }finally{$("picksBtn").disabled=false;}
+}
+
+/* ---------- BOT SWING CALLS: scan the market for short-term swings ---------- */
+window._swingPlays=[];
+async function runSwingScan(){
+  $("swingScanBtn").disabled=true;
+  $("swingOut").innerHTML="";
+  $("swingStatus").innerHTML='<p class="status">▸ building the swing universe…</p>';
+  try{
+    let list=UNIVERSE.slice();
+    const adds=await Promise.allSettled([getScreener("day_gainers",true),getScreener("small_cap_gainers",true)]);
+    for(const r of adds){if(r.status!=="fulfilled")continue;
+      for(const q of r.value.slice(0,10)){if(q.price>=1&&list.indexOf(q.ticker)<0)list.push(q.ticker);}}
+    const started=Date.now(),BUDGET=150000,plays=[],near=[];
+    let done=0;
+    async function one(t){
+      if(Date.now()-started>BUDGET)return;
+      try{
+        const mkt=await getMarket(t,"6mo","1d",true);
+        const price=mkt.price;
+        const levels=findLevels(mkt.bars,price);
+        const patterns=detectPatterns(mkt.bars,price);
+        const rating=rateSetup(price,mkt.bars,levels,null,patterns,null);
+        const strength=Math.abs(rating.bullScore-rating.bearScore);
+        const _mc=parseFloat((document.getElementById("minConf")||{}).value)||70;
+        const _mm=parseFloat((document.getElementById("minMove")||{}).value)||4;
+        if(rating.dir!=="neutral"&&rating.plan&&strength>=2.5&&rating.conv.conf>=_mc&&(rating.plan.movePct||0)>=_mm){
+          plays.push({t:t,name:mkt.name,price:price,rating:rating,plan:rating.plan,strength:strength});
+        } else if(rating.dir!=="neutral"&&strength>=1.5){
+          near.push({t:t,verdict:rating.verdict,strength:strength});
+        }
+      }catch(e){}
+      finally{done++;$("swingStatus").innerHTML='<p class="status">▸ scanning swings — '+done+'/'+list.length+' ('+plays.length+' calls, '+Math.round((Date.now()-started)/1000)+'s)…</p>';}
+    }
+    const q=list.slice();
+    async function w(){while(q.length&&Date.now()-started<BUDGET){await one(q.shift());}}
+    await Promise.all([w(),w(),w(),w(),w(),w(),w(),w()]);
+    $("swingStatus").innerHTML="";
+    plays.sort((a,b)=>b.strength-a.strength);
+    window._swingPlays=plays.slice(0,5);
+    let html="";
+    if(window._swingPlays.length){
+      html=window._swingPlays.map((p,i)=>{
+        const col=p.plan.bias==="short"?"down":"up";
+        return '<div class="card" style="border-left:3px solid var(--'+(p.plan.bias==="short"?"down":"up")+')">'
+        +'<div class="row"><span class="tk" style="font-size:20px">'+esc(p.t)+'</span>'
+        +'<span class="mono" style="font-size:15px">'+fmtPx(p.price)+'</span>'
+        +'<span class="mono '+col+'" style="font-size:13px;font-weight:700">'+p.rating.verdict+'</span></div>'
+        +'<div class="small" style="margin-top:4px">'+esc(p.name)+'</div>'
+        +'<div class="mono" style="font-size:12px;line-height:2;margin-top:8px"><span class="'+col+'" style="font-weight:700">'+p.plan.bias.toUpperCase()+'</span> · trigger <span class="amber">'+fmtPx(p.plan.trigger)+'</span> · target <span class="up">'+fmtPx(p.plan.target)+'</span> · stop <span class="down">'+fmtPx(p.plan.stop)+'</span></div>'
+        +p.rating.bull.slice(0,2).map((r)=>'<div class="ev"><span class="up">▲</span> '+esc(r)+'</div>').join("")
+        +p.rating.bear.slice(0,1).map((r)=>'<div class="ev"><span class="down">▼</span> '+esc(r)+'</div>').join("")
+        +'<div class="row" style="gap:8px"><button class="ghost" onclick="logCall({ticker:\''+esc(p.t)+'\',name:\''+esc(p.name)+'\',price:'+p.price+',plan:_swingPlays['+i+'].plan})">LOG CALL</button>'
+        +'<button class="ghost" onclick="$(\'swingTicker\').value=\''+esc(p.t)+'\';runSwings()">FULL ST+LT GRADE</button></div>'
+        +'</div>';}).join("");
+    } else {
+      html='<p class="small" style="margin-top:12px;line-height:1.8">No swing calls clear the bar right now — that is the scanner protecting your capital in a directionless tape, not failing you.</p>';
+    }
+    if(near.length){
+      html+='<div class="card"><div class="label">NEAR MISSES — watching, not trading</div>'
+      +near.slice(0,4).map((n)=>'<div class="mono small" style="line-height:2">'+esc(n.t)+' — '+esc(n.verdict)+' (strength '+n.strength.toFixed(1)+', needs 2.5+)</div>').join("")+'</div>';
+    }
+    html+='<p class="small" style="margin-top:10px">full setup engine per name · scanned '+list.length+' names: liquid core + live gainers + small-cap movers · tap FULL ST+LT GRADE for fundamentals, analysts, insiders & earnings radar · not financial advice</p>';
+    $("swingOut").innerHTML=html;
+    markLive("swing scan: "+window._swingPlays.length+" calls");
+  }catch(e){
+    $("swingStatus").innerHTML='<p class="card err">'+esc(e.message)+'</p>';
+  }finally{$("swingScanBtn").disabled=false;}
+}
+
+/* ---------- LONG-TERM ENGINE: fundamentals + analysts + trend ---------- */
+function rateLongTerm(price,bars,stats,newsScore){
+  const closes=bars.map((b)=>b.c);
+  const s50=sma(closes,50),s200=sma(closes,200);
+  const bull=[],bear=[];let bs=0,rs=0;
+  if(s200){
+    const d=((price-s200)/s200*100);
+    if(price>s200){bs+=1.5;bull.push("above the 200-day average ("+fmtPx(s200)+", +"+d.toFixed(1)+"%) — the big trend is up");}
+    else{rs+=1.5;bear.push(Math.abs(d).toFixed(1)+"% below the 200-day ("+fmtPx(s200)+") — fighting the big trend");}
+  } else bear.push("less than a year of trading — no 200-day trend to lean on yet");
+  if(s50&&s200){
+    if(s50>s200){bs++;bull.push("50-day above 200-day — golden-cross structure");}
+    else{rs++;bear.push("50-day below 200-day — death-cross structure");}
+  }
+  let hi=-Infinity,lo=Infinity;
+  for(const b of bars){if(b.h!=null&&b.h>hi)hi=b.h;if(b.l!=null&&b.l<lo)lo=b.l;}
+  if(hi>lo){const pos=((price-lo)/(hi-lo)*100);
+    if(pos>=60){bs+=0.5;bull.push("upper part of its 52-week range ("+pos.toFixed(0)+"% of "+fmtPx(lo)+"–"+fmtPx(hi)+")");}
+    else if(pos<=25){rs+=0.5;bear.push("bottom quarter of its 52-week range — market has been voting no for a while");}}
+  if(stats){
+    if(stats.revGrowth!=null){const rg=stats.revGrowth*100;
+      if(rg>=15){bs++;bull.push("revenue growing "+rg.toFixed(0)+"% year-over-year — the business is expanding");}
+      else if(rg<0){rs++;bear.push("revenue SHRINKING "+rg.toFixed(0)+"% year-over-year — the business is going backwards");}}
+    if(stats.epsGrowth!=null){const eg=stats.epsGrowth*100;
+      if(eg>=15){bs++;bull.push("earnings growing "+eg.toFixed(0)+"% — profits following through");}
+      else if(eg<0){rs++;bear.push("earnings falling "+eg.toFixed(0)+"%");}}
+    if(stats.margins!=null){const m=stats.margins*100;
+      if(m>=10){bs++;bull.push("profit margin "+m.toFixed(0)+"% — actually makes money");}
+      else if(m<0){rs++;bear.push("NEGATIVE margins ("+m.toFixed(0)+"%) — burns cash to operate; long-term holders fund the burn via dilution");}}
+    if(stats.fcf!=null){
+      if(stats.fcf>0){bs+=0.5;bull.push("free cash flow positive ("+fmtBig(stats.fcf)+") — self-funding");}
+      else{rs+=0.5;bear.push("free cash flow negative ("+fmtBig(stats.fcf)+") — will likely need to raise money");}}
+    if(stats.d2e!=null){
+      if(stats.d2e>200){rs++;bear.push("debt-to-equity "+stats.d2e.toFixed(0)+"% — heavy leverage, fragile in a downturn");}
+      else if(stats.d2e<50){bs+=0.5;bull.push("debt-to-equity only "+stats.d2e.toFixed(0)+"% — clean balance sheet");}}
+    if(stats.recTrend){const rt=stats.recTrend;const buys=rt.strongBuy+rt.buy;
+      if(buys>=rt.hold+rt.sell&&buys>0){bs++;bull.push("ANALYSTS: "+rt.strongBuy+" strong buy / "+rt.buy+" buy vs "+rt.hold+" hold / "+rt.sell+" sell");}
+      else if(rt.sell>buys){rs++;bear.push("ANALYSTS lean negative: "+rt.sell+" sells vs "+buys+" buys");}
+      else bull.push("ANALYSTS mixed: "+rt.strongBuy+"/"+rt.buy+"/"+rt.hold+"/"+rt.sell+" (sb/b/h/s)");}
+    if(stats.targetMean!=null&&price){const up=((stats.targetMean-price)/price*100);
+      if(up>=20){bs++;bull.push("street target "+fmtPx(stats.targetMean)+" = "+up.toFixed(0)+"% upside on a 12-month view");}
+      else if(up<=-10){rs++;bear.push("street target "+fmtPx(stats.targetMean)+" is BELOW price by "+Math.abs(up).toFixed(0)+"%");}}
+    if(stats.insiderBuys!=null&&stats.insiderSells!=null){
+      if(stats.insiderBuys>0&&stats.insiderBuys>=stats.insiderSells*2){bs++;bull.push("INSIDERS net buyers ("+stats.insiderBuys+" buys vs "+stats.insiderSells+" sells last "+stats.insiderPeriod+")");}
+      else if(stats.insiderSells>=stats.insiderBuys*3&&stats.insiderSells>0){rs++;bear.push("INSIDERS net sellers ("+stats.insiderSells+" sells vs "+stats.insiderBuys+" buys)");}}
+  } else bear.push("fundamentals unavailable for this name right now — long-term grade is trend + analysts only");
+  if(newsScore&&newsScore.hits.length){
+    if(newsScore.score>0){bs+=0.5;bull.push("news flow positive over the recent stretch");}
+    else if(newsScore.score<0){rs+=0.5;bear.push("news flow negative over the recent stretch");}}
+  const margin=bs-rs,strength=Math.abs(margin);
+  let verdict,col;
+  if(margin>=3){verdict="LONG-TERM BUY ZONE";col="up";}
+  else if(margin<=-3){verdict="AVOID LONG-TERM / SELL STRENGTH";col="down";}
+  else {verdict="HOLD & WATCH — NOT PROVEN EITHER WAY";col="amber";}
+  const grade=strength>=6?"A":strength>=4?"B":strength>=2?"C":"D";
+  let entry="";
+  if(margin>=3&&s50)entry="Accumulation zones: pullbacks toward the 50-day ("+fmtPx(s50)+")"+(s200?" and the 200-day ("+fmtPx(s200)+")":"")+" — buying strength at highs is how long-term entries end up underwater for months.";
+  return {grade:grade,verdict:verdict,col:col,bullScore:bs,bearScore:rs,bull:bull,bear:bear,entry:entry,
+    summary:(margin>=3?"Long-term case is real: "+(bull[0]||""):margin<=-3?"Long-term case is broken: "+(bear[0]||""):"Not enough proven either way — bulls "+bs.toFixed(1)+" pts vs bears "+rs.toFixed(1)+" pts.")};
+}
+function evBlock(title,rating){
+  return '<div class="card"><div class="label">'+title+'</div>'
+  +'<div class="row" style="align-items:center;gap:16px"><span class="gradebig '+rating.col+'">'+rating.grade+'</span>'
+  +'<span class="mono '+rating.col+'" style="font-size:14px;font-weight:700">'+rating.verdict+'</span></div>'
+  +'<div class="mono small" style="margin-top:6px">bull '+(+rating.bullScore).toFixed(1)+' pts · bear '+(+rating.bearScore).toFixed(1)+' pts</div>'
+  +'<p style="font-size:14px;line-height:1.6;margin:10px 0">'+esc(rating.summary)+'</p>'
+  +(rating.entry?'<p class="mono" style="font-size:12px;line-height:1.8;color:var(--amber);margin:10px 0">'+esc(rating.entry)+'</p>':'')
+  +rating.bull.map((r)=>'<div class="ev"><span class="up">▲</span> '+esc(r)+'</div>').join("")
+  +rating.bear.map((r)=>'<div class="ev"><span class="down">▼</span> '+esc(r)+'</div>').join("")
+  +'</div>';
+}
+function setSwingView(v){
+  $("swingViewST").style.display=v==="st"?"":"none";
+  $("swingViewLT").style.display=v==="lt"?"":"none";
+  $("stv-st").style.background=v==="st"?"var(--amber)":"var(--panel2)";
+  $("stv-st").style.color=v==="st"?"#0C0E12":"var(--muted)";
+  $("stv-st").style.fontWeight=v==="st"?"700":"400";
+  $("stv-lt").style.background=v==="lt"?"var(--amber)":"var(--panel2)";
+  $("stv-lt").style.color=v==="lt"?"#0C0E12":"var(--muted)";
+  $("stv-lt").style.fontWeight=v==="lt"?"700":"400";
+}
+let swingCurrent=null;
+async function runSwings(){
+  $("swingSubTabs").style.display="none";
+  const t=$("swingTicker").value.trim().toUpperCase();
+  if(!t)return;
+  $("swingBtn").disabled=true;
+  $("swingOut").innerHTML="";
+  $("swingStatus").innerHTML='<p class="status">▸ pulling a full year of data + fundamentals + analysts + news for '+esc(t)+'…</p>';
+  try{
+    const mkt=await getMarket(t,"1y","1d");
+    const stats=await getStats(t);
+    let news=[];try{news=await getNews(t);}catch(e){}
+    const ns=scoreNews(news);
+    const price=mkt.price;
+    const stBars=mkt.bars.slice(-130);
+    const levels=findLevels(stBars,price);
+    const patterns=detectPatterns(stBars,price);
+    const st=rateSetup(price,stBars,levels,stats,patterns,ns);
+    const lt=rateLongTerm(price,mkt.bars,stats,ns);
+    swingCurrent={ticker:t,name:mkt.name,price:price,plan:st.plan};
+    $("swingOut").innerHTML=
+      '<div class="card"><div class="row"><span class="tk">'+esc(t)+'</span><span class="px">'+fmtPx(price)+'</span></div>'
+      +'<div class="small" style="margin-top:5px">'+esc(mkt.name)+' · graded '+new Date().toLocaleTimeString()+' · news + insiders factored into both grades below</div></div>'
+      +'<div id="swingViewST">'
+      +evBlock("SHORT-TERM SWING (DAYS–WEEKS)",st)
+      +(st.plan?'<div class="card"><div class="label">SHORT-TERM PLAN</div><div class="mono" style="font-size:13px;line-height:2"><span class="'+(st.plan.bias==="short"?"down":"up")+'" style="font-weight:700">'+st.plan.bias.toUpperCase()+'</span> · trigger <span class="amber">'+fmtPx(st.plan.trigger)+'</span> · target <span class="up">'+fmtPx(st.plan.target)+'</span> · stop <span class="down">'+fmtPx(st.plan.stop)+'</span></div><button class="ghost" onclick="logCall(swingCurrent)">LOG SHORT-TERM CALL</button></div>':'')
+      +'</div>'
+      +'<div id="swingViewLT" style="display:none">'
+      +evBlock("LONG-TERM (MONTHS+)",lt)
+      +'</div>'
+      +'<div class="tvbox" id="swingtv" style="height:440px"></div>';
+    $("swingSubTabs").style.display="flex";
+    setSwingView("st");
+    $("swingStatus").innerHTML="";
+    new TradingView.widget({symbol:t,container_id:"swingtv",autosize:true,theme:"dark",style:"1",interval:"W",timezone:"exchange",hide_side_toolbar:true,allow_symbol_change:false,backgroundColor:"#0C0E12"});
+    markLive(t+" dual-timeframe graded");
+  }catch(e){
+    $("swingStatus").innerHTML='<p class="card err">'+esc(e.message)+'</p>';
+  }finally{$("swingBtn").disabled=false;}
+}
+
+/* ---------- OPTIONS CHAIN: real contract prices ---------- */
+async function getChain(t,dateEpoch,fast){
+  /* CBOE delayed chain first: whole chain in one fetch, REAL greeks */
+  try{
+    const url="https://cdn.cboe.com/api/global/delayed_quotes/options/"+t.toUpperCase()+".json";
+    const j=await (fast?ygetFast:yget)(url);
+    const list=j&&j.data&&j.data.options;
+    if(list&&list.length){
+      const byExp={};
+      for(const o of list){
+        const m=/^([A-Z]+)(\d{6})([CP])(\d{8})$/.exec(o.option||"");
+        if(!m)continue;
+        const yy=+m[2].slice(0,2),mo=+m[2].slice(2,4),dd=+m[2].slice(4,6);
+        const epoch=Date.UTC(2000+yy,mo-1,dd,20,0,0)/1000;
+        const rec={strike:+m[4]/1000,bid:o.bid,ask:o.ask,lastPrice:o.last_trade_price,
+          volume:o.volume,openInterest:o.open_interest,impliedVolatility:o.iv,
+          delta:o.delta,theta:o.theta};
+        if(!byExp[epoch])byExp[epoch]={calls:[],puts:[]};
+        byExp[epoch][m[3]==="C"?"calls":"puts"].push(rec);
+      }
+      const nowS=Date.now()/1000;
+      const exps=Object.keys(byExp).map(Number).sort((a,b)=>a-b).filter((e)=>e>nowS-86400);
+      if(exps.length){
+        let pick=exps[0];
+        if(dateEpoch){
+          pick=exps.reduce((best,e)=>Math.abs(e-dateEpoch)<Math.abs(best-dateEpoch)?e:best,exps[0]);
+        }
+        return {expirationDates:exps,options:[byExp[pick]||{calls:[],puts:[]}],source:"cboe"};
+      }
+    }
+  }catch(e){}
+  /* Yahoo fallback */
+  try{
+    const j=await (fast?ygetFast:yget)("https://query2.finance.yahoo.com/v7/finance/options/"+t+(dateEpoch?("?date="+dateEpoch):""));
+    const r=(j.optionChain&&j.optionChain.result&&j.optionChain.result[0])||null;
+    if(r)r.source="yahoo";
+    return r;
+  }catch(e){return null;}
+}
+
+/* ---------- OPTIONS: calls or puts, entry, strike zone, expiration ---------- */
+const DAILY_EXP=["SPY","QQQ","IWM","DIA"];
+function nextFridays(n){
+  const out=[];const d=new Date();
+  const day=d.getDay();let add=(5-day+7)%7;if(add===0)add=7;
+  for(let i=0;i<n;i++){const f=new Date(d.getTime()+(add+7*i)*86400000);out.push(f.toLocaleDateString(undefined,{month:"short",day:"numeric"}));}
+  return out;
+}
+let optCurrent=null;
+async function runOptions(){
+  const t=$("optTicker").value.trim().toUpperCase();
+  if(!t)return;
+  $("optBtn").disabled=true;
+  $("optOut").innerHTML="";
+  startAction(40000);
+  const t0=Date.now();
+  const tick=setInterval(()=>{
+    const s=Math.round((Date.now()-t0)/1000);
+    $("optStatus").innerHTML='<p class="status">▸ reading '+esc(t)+'… '+s+'s (stops itself at 40s)</p>';
+  },1000);
+  $("optStatus").innerHTML='<p class="status">▸ reading daily structure + intraday tape for '+esc(t)+'…</p>';
+  try{
+    /* daily bars are the only hard requirement — everything else degrades */
+    const daily=await getMarket(t,"6mo","1d");
+    /* intraday is optional: a dead relay must not stall the read */
+    const intra=await soft(()=>getMarket(t,"5d","15m"),Math.min(9000,budgetLeft()));
+    const price=daily.price;
+    const levels=findLevels(daily.bars,price);
+    const patterns=detectPatterns(daily.bars,price);
+    const rating=rateSetup(price,daily.bars,levels,null,patterns,null);
+    /* intraday read */
+    const intraEv=[];let intraDir=0;
+    if(intra&&intra.bars.length>10){
+      const ic=intra.bars.map((b)=>b.c);
+      const iS20=sma(ic,20);
+      const dayOpen=intra.bars[Math.max(0,intra.bars.length-26)].o;
+      const dayMove=dayOpen?((price-dayOpen)/dayOpen*100):0;
+      if(iS20&&price>iS20){intraDir++;intraEv.push({d:1,t:"intraday: price above its 15-min 20-bar average ("+fmtPx(iS20)+") — buyers own the day"});}
+      else if(iS20){intraDir--;intraEv.push({d:-1,t:"intraday: price below its 15-min 20-bar average ("+fmtPx(iS20)+") — sellers own the day"});}
+      if(dayMove>=0.5){intraDir++;intraEv.push({d:1,t:"intraday: +"+dayMove.toFixed(1)+"% off today's open — trend day up"});}
+      else if(dayMove<=-0.5){intraDir--;intraEv.push({d:-1,t:"intraday: "+dayMove.toFixed(1)+"% off today's open — trend day down"});}
+      else intraEv.push({d:0,t:"intraday: flat ("+dayMove.toFixed(1)+"% from open) — chop, no day trend yet"});
+    }
+    /* combine: daily direction is the trade, intraday is the timing */
+    const dailyDir=rating.dir;
+    let side,scol,note;
+    if(dailyDir==="long"&&intraDir>=0){side="CALLS";scol="up";note="daily structure bullish and the intraday tape agrees";}
+    else if(dailyDir==="short"&&intraDir<=0){side="PUTS";scol="down";note="daily structure bearish and the intraday tape agrees";}
+    else if(dailyDir==="neutral"){side="STAND ASIDE";scol="amber";note="daily chart is conflicted — options bleed premium while you wait for it to decide";}
+    else {side="STAND ASIDE";scol="amber";note="daily says "+dailyDir.toUpperCase()+" but today's tape is fighting it — wait for alignment instead of paying theta to argue with the intraday";}
+    /* entry + strike + expiration */
+    const plan=rating.plan;
+    const fridays=nextFridays(4);
+    let entryHTML="",expHTML="",strikeHTML="";
+    if(side==="CALLS"&&plan){
+      entryHTML='patient entry: pullback toward <span class="amber">'+fmtPx(levels.sup[0]?levels.sup[0].price:price*0.99)+'</span> support · aggressive: break over <span class="amber">'+fmtPx(plan.trigger)+'</span> with volume · invalidated below <span class="down">'+fmtPx(plan.stop)+'</span>';
+      strikeHTML='strike zone: at-the-money (~<span class="amber">'+fmtPx(Math.round(price))+'</span>) for cleaner odds, or one strike out (~<span class="amber">'+fmtPx(Math.round(price*1.02))+'</span>) for more juice and more risk';
+    } else if(side==="PUTS"&&plan){
+      entryHTML='patient entry: bounce toward <span class="amber">'+fmtPx(levels.res[0]?levels.res[0].price:price*1.01)+'</span> resistance · aggressive: break under <span class="amber">'+fmtPx(plan.trigger)+'</span> with volume · invalidated above <span class="down">'+fmtPx(plan.stop)+'</span>';
+      strikeHTML='strike zone: at-the-money (~<span class="amber">'+fmtPx(Math.round(price))+'</span>), or one strike down (~<span class="amber">'+fmtPx(Math.round(price*0.98))+'</span>) for more juice and more risk';
+    }
+    if(side!=="STAND ASIDE"){
+      const strongDay=Math.abs(intraDir)>=2;
+      if(DAILY_EXP.indexOf(t)>=0){
+        expHTML=strongDay
+          ? '0DTE is <span class="'+scol+'">on the table</span> today — the intraday trend is real. But know the deal: after ~2pm decay eats you alive and one chop kills the position. The higher-percentage version of the same trade: <span class="amber">2–5 days out</span> (this Fri '+fridays[0]+' or next '+fridays[1]+') — same move, survivable pullbacks.'
+          : '0DTE: <span class="down">not today</span> — no strong intraday trend, so 0DTE is pure theta donation. Go <span class="amber">'+fridays[0]+'–'+fridays[1]+'</span> so the daily setup has room to play out.';
+      } else {
+        expHTML='this is a swing setup on the daily chart — give it <span class="amber">2–4 weeks</span> ('+fridays[1]+' to '+fridays[3]+'). Short-dated contracts on a multi-day thesis is how right ideas still lose money.';
+      }
+    }
+    /* real contract prices from the live chain */
+    let conHTML="";
+    if(side!=="STAND ASIDE"&&plan){
+      try{
+        const base=await getChain(t,null);
+        if(base&&base.expirationDates&&base.expirationDates.length){
+          const now=Date.now()/1000;
+          let expEpoch=base.expirationDates[0];
+          const strongDay=Math.abs(intraDir)>=2;
+          if(DAILY_EXP.indexOf(t)>=0&&strongDay){expEpoch=base.expirationDates[0];}
+          else if(DAILY_EXP.indexOf(t)>=0){for(const e of base.expirationDates){if(e-now>=2*86400){expEpoch=e;break;}}}
+          else{for(const e of base.expirationDates){if(e-now>=14*86400){expEpoch=e;break;}}}
+          const chain=(expEpoch===base.expirationDates[0])?base:await getChain(t,expEpoch);
+          const opts=chain&&chain.options&&chain.options[0];
+          const arr=opts?(side==="CALLS"?opts.calls:opts.puts):null;
+          if(arr&&arr.length){
+            let best=null,bd=Infinity;
+            for(const c of arr){const d=Math.abs(c.strike-price);if(d<bd){bd=d;best=c;}}
+            if(best){
+              const mid=(best.bid&&best.ask)?((best.bid+best.ask)/2):(best.lastPrice||0);
+              const iv=best.impliedVolatility?(best.impliedVolatility*100).toFixed(0)+"%":"—";
+              const expStr=new Date(expEpoch*1000).toLocaleDateString(undefined,{month:"short",day:"numeric"});
+              const intrinsicAtTarget=side==="CALLS"?Math.max(plan.target-best.strike,0):Math.max(best.strike-plan.target,0);
+              conHTML='<div class="mono" style="font-size:12px;line-height:2;margin-top:10px"><span class="eyebrow">THE CONTRACT (EXCHANGE CHAIN, ~15-MIN DELAYED)</span><br>'
+                +esc(t)+' <span class="'+scol+'">'+fmtPx(best.strike)+(side==="CALLS"?"C":"P")+'</span> exp <span class="amber">'+expStr+'</span>'
+                +' · price ≈ <span class="amber">$'+mid.toFixed(2)+'/share ($'+(mid*100).toFixed(0)+' per contract)</span>'
+                +' · IV '+iv
+                +'<br>if '+esc(t)+' hits your <span class="up">'+fmtPx(plan.target)+'</span> target before expiry, this contract is worth AT LEAST <span class="up">$'+intrinsicAtTarget.toFixed(2)+'/share ($'+(intrinsicAtTarget*100).toFixed(0)+')</span> on intrinsic alone — more with time left'
+                +'<br>cut it if '+esc(t)+' '+(side==="CALLS"?"closes below":"closes above")+' <span class="down">'+fmtPx(plan.stop)+'</span> — don\'t ride a broken thesis to zero</div>';
+            }
+          }
+        }
+        if(!conHTML)conHTML='<div class="small" style="margin-top:8px">live option chain unreachable right now — strike zone, expiration and underlying targets above still stand; check the premium on your broker</div>';
+      }catch(e){conHTML='<div class="small" style="margin-top:8px">live option chain unreachable right now — check premiums on your broker</div>';}
+    }
+    optCurrent={ticker:t,name:daily.name,price:price,plan:plan};
+    let html='<div class="card"><div class="row"><span class="tk">'+esc(t)+'</span><span class="px">'+fmtPx(price)+'</span></div>'
+      +'<div class="small" style="margin-top:5px">'+esc(daily.name)+' · read at '+new Date().toLocaleTimeString()+'</div></div>'
+      +'<div class="card"><div class="label">THE CALL</div>'
+      +'<div class="row" style="align-items:center;gap:20px"><span class="gradebig '+scol+'">'+side+'</span>'
+      +'<span class="mono '+scol+'" style="font-size:13px;max-width:340px">'+note+'</span></div>'
+      +(entryHTML?'<div class="mono" style="font-size:12px;line-height:2;margin-top:12px">'+entryHTML+'</div>':'')
+      +(strikeHTML?'<div class="mono" style="font-size:12px;line-height:2">'+strikeHTML+'</div>':'')
+      +(expHTML?'<div class="mono" style="font-size:12px;line-height:2;margin-top:8px"><span class="eyebrow">EXPIRATION</span><br>'+expHTML+'</div>':'')
+      +conHTML
+      +((side!=="STAND ASIDE"&&plan)?'<button class="ghost" onclick="logCall(optCurrent)">LOG THIS AS A CALL</button>':'')
+      +'<div class="small" style="margin-top:10px">options move fast and expire worthless more often than shares go to zero — size like it. not financial advice.</div></div>'
+      +'<div class="card"><div class="label">INTRADAY EVIDENCE</div>'
+      +(intraEv.length?intraEv.map((e)=>'<div class="ev"><span class="'+(e.d>0?"up":e.d<0?"down":"amber")+'">'+(e.d>0?"▲":e.d<0?"▼":"◆")+'</span> '+esc(e.t)+'</div>').join(""):'<div class="small">intraday data unavailable right now — call is from the daily chart only</div>')
+      +'</div>'
+      +'<div class="card"><div class="label">DAILY CHART EVIDENCE (drives the direction)</div>'
+      +rating.bull.map((r)=>'<div class="ev"><span class="up">▲</span> '+esc(r)+'</div>').join("")
+      +rating.bear.map((r)=>'<div class="ev"><span class="down">▼</span> '+esc(r)+'</div>').join("")
+      +'</div>'
+      +'<div class="tvbox" id="opttv" style="height:440px"></div>';
+    $("optOut").innerHTML=html;
+    $("optStatus").innerHTML="";
+    new TradingView.widget({symbol:t,container_id:"opttv",autosize:true,theme:"dark",style:"1",interval:"15",timezone:"exchange",hide_side_toolbar:true,allow_symbol_change:false,backgroundColor:"#0C0E12"});
+    markLive(t+" options read");
+  }catch(e){
+    $("optStatus").innerHTML='<p class="card err">'+esc(e.message)+'</p>';
+  }finally{
+    clearInterval(tick);
+    endAction();
+    $("optBtn").disabled=false;
+  }
+}
+
+/* ---------- NEXT WEEK PLAYS ----------
+   Sunday prep. Reads the liquid universe and keeps only names with a real reason
+   to move next week. Runs 6 tickers at a time against a hard wall-clock budget,
+   so it always returns — a dead relay costs one ticker, never the whole scan. */
+/* ---------- QUALITY SCORE ----------
+   No single hard gate. Every category scores on its own and the total is
+   normalized over ONLY the categories that returned data, so a name whose
+   fundamentals pull died is not unfairly buried. Coverage is reported so a
+   high score built on thin data is visible rather than hidden. */
+function scoreStock(d){
+  const cats=[];
+  if(d.sma20!=null&&d.sma50!=null){
+    let s=0;
+    if(d.price>=d.sma20)s+=30;
+    if(d.price>=d.sma50)s+=25;
+    if(d.sma20>=d.sma50)s+=25;
+    if(d.sma200!=null&&d.price>=d.sma200)s+=20; else if(d.sma200==null)s+=10;
+    cats.push({k:"trend",w:25,s:Math.min(100,s)});
+  }
+  if(d.ret1m!=null||d.ret3m!=null){
+    let s=50;
+    if(d.ret1m!=null)s+=Math.max(-25,Math.min(25,d.ret1m*2.5));
+    if(d.ret3m!=null)s+=Math.max(-15,Math.min(15,d.ret3m*1.0));
+    if(d.pctOff52wHigh!=null&&d.pctOff52wHigh>-15)s+=10;
+    cats.push({k:"momentum",w:15,s:Math.max(0,Math.min(100,s))});
+  }
+  if(d.volRatio!=null){
+    cats.push({k:"volume",w:12,s:d.volRatio>=2?100:d.volRatio>=1.5?80:d.volRatio>=1.2?60:d.volRatio>=0.9?45:25});
+  }
+  const f=[];
+  if(d.revGrowth!=null)f.push(d.revGrowth>=0.25?100:d.revGrowth>=0.10?75:d.revGrowth>=0?50:20);
+  if(d.epsGrowth!=null)f.push(d.epsGrowth>=0.25?100:d.epsGrowth>=0.10?75:d.epsGrowth>=0?50:20);
+  if(d.margins!=null)f.push(d.margins>=0.20?100:d.margins>=0.10?75:d.margins>=0?50:20);
+  if(d.d2e!=null)f.push(d.d2e<=50?100:d.d2e<=100?75:d.d2e<=200?45:20);
+  if(d.fcf!=null)f.push(d.fcf>0?90:30);
+  if(f.length)cats.push({k:"fundamentals",w:26,s:f.reduce((a,b)=>a+b,0)/f.length});
+  const a=[];
+  if(d.buyRatio!=null)a.push(d.buyRatio>=0.7?100:d.buyRatio>=0.5?75:d.buyRatio>=0.3?50:25);
+  if(d.targetUpside!=null)a.push(d.targetUpside>=0.30?100:d.targetUpside>=0.15?80:d.targetUpside>=0?55:25);
+  if(a.length)cats.push({k:"analysts",w:12,s:a.reduce((x,y)=>x+y,0)/a.length});
+  if(d.netInsider!=null)cats.push({k:"insiders",w:10,s:d.netInsider>=3?100:d.netInsider>=1?75:d.netInsider===0?50:20});
+  if(d.newsCount!=null&&d.newsCount>0){
+    /* net sentiment across scored headlines, mapped onto 0-100 and damped when
+       only one or two headlines carried any signal at all */
+    const net=d.newsNet||0;
+    let s=50+net*14;
+    const scored=d.newsScored||0;
+    if(scored<=1)s=50+(s-50)*0.5;
+    cats.push({k:"news",w:14,s:Math.max(0,Math.min(100,s))});
+  }
+  if(!cats.length)return null;
+  const MAXW=114; /* sum of every category weight when all data is present */
+  const wSum=cats.reduce((x,c)=>x+c.w,0);
+  return {total:Math.round(cats.reduce((x,c)=>x+c.s*c.w,0)/wSum),coverage:Math.round(wSum/MAXW*100),cats:cats};
+}
+
+/* Turns the score into plain English: what is carrying it, what is dragging it,
+   and what that combination actually means. Cites real numbers, not bar values. */
+function explainScore(r){
+  const by={};
+  for(const c of r.cats)by[c.k]=c.s;
+  const pct=(x)=>(x*100).toFixed(0)+"%";
+  const good=[],bad=[];
+
+  if(by.trend!=null){
+    const above=[];
+    if(r.sma20!=null&&r.price>=r.sma20)above.push("20");
+    if(r.sma50!=null&&r.price>=r.sma50)above.push("50");
+    if(r.sma200!=null&&r.price>=r.sma200)above.push("200");
+    if(by.trend>=75)good.push("price is holding above its "+above.join(", ")+" day averages with the 20 over the 50, which is what an intact uptrend looks like");
+    else if(by.trend<50)bad.push("price is below its key moving averages, so the trend is against a long here and every bounce is fighting the tape");
+    else bad.push("the trend is mixed, price is above some averages but not stacked cleanly");
+  }
+  if(by.fundamentals!=null){
+    const bits=[];
+    if(r.revGrowth!=null)bits.push("revenue "+(r.revGrowth>=0?"+":"")+pct(r.revGrowth));
+    if(r.epsGrowth!=null)bits.push("earnings "+(r.epsGrowth>=0?"+":"")+pct(r.epsGrowth));
+    if(r.margins!=null)bits.push("margins "+pct(r.margins));
+    if(r.d2e!=null)bits.push("debt/equity "+Math.round(r.d2e));
+    if(r.fcf!=null)bits.push("free cash flow "+(r.fcf>0?"positive":"negative"));
+    const detail=bits.length?" ("+bits.join(", ")+")":"";
+    if(by.fundamentals>=75)good.push("the business underneath is genuinely strong"+detail);
+    else if(by.fundamentals<50)bad.push("the fundamentals are weak"+detail+", so you would be buying a chart rather than a company");
+    else bad.push("the fundamentals are middling"+detail);
+  }
+  if(by.momentum!=null){
+    if(by.momentum>=75)good.push("it has real momentum behind it"+(r.ret3m!=null?", up "+r.ret3m.toFixed(0)+"% over three months":""));
+    else if(by.momentum<45)bad.push("momentum is negative"+(r.ret3m!=null?", down "+Math.abs(r.ret3m).toFixed(0)+"% over three months":"")+", so there is no crowd pushing it higher");
+  }
+  if(by.volume!=null){
+    if(by.volume>=80)good.push("volume is running "+r.volRatio.toFixed(1)+"x normal, meaning money is already moving in, not waiting");
+    else if(by.volume<45)bad.push("volume is below normal at "+r.volRatio.toFixed(1)+"x, so nobody is stepping in yet");
+  }
+  if(by.analysts!=null){
+    if(by.analysts>=75)good.push("analysts are onside"+(r.targetUpside!=null?" with roughly "+(r.targetUpside*100).toFixed(0)+"% to their average target":""));
+    else if(by.analysts<45)bad.push("analysts are lukewarm"+(r.targetUpside!=null&&r.targetUpside<0?" and price is already above their average target":""));
+  }
+  if(by.insiders!=null&&r.netInsider!=null){
+    if(r.netInsider>=3)good.push("insiders are net buyers ("+r.netInsider+"), which is the one signal where people are risking their own money");
+    else if(r.netInsider<0)bad.push("insiders are net sellers ("+r.netInsider+")");
+  }
+
+  if(by.news!=null){
+    const bulls=(r.newsHits||[]).filter((h)=>h.dir>0),bears=(r.newsHits||[]).filter((h)=>h.dir<0);
+    if(by.news>=70)good.push("the news flow is leaning positive ("+bulls.length+" bullish vs "+bears.length+" bearish headlines)");
+    else if(by.news<=35)bad.push("the news flow is leaning negative ("+bears.length+" bearish vs "+bulls.length+" bullish headlines), which is usually the market pricing in something the chart has not shown yet");
+    else if(r.newsCount)bad.push("news is neutral, nothing in the headlines is pushing it either way");
+  }
+
+  const thin=r.coverage<60;
+  let verdict;
+  if(r.score>=85)verdict=thin
+    ?"Scores high on what could be measured, but whole categories are missing, so this is not yet an across-the-board quality name."
+    :"Strong across the board. This is the profile you want on a watchlist: the business, the chart and the flow all point the same way.";
+  else if(r.score>=75)verdict=thin
+    ?"Scores well on the categories that returned data, with the rest unmeasured. Re-run it when the data is complete before treating this as a quality name."
+    :"Solid overall with a soft spot or two. Worth watching, but read which category is dragging before you size it.";
+  else if(r.score>=65)verdict="Mixed. Something real is here but it is not firing on all cylinders, so it competes with better names on the same list.";
+  else if(r.score>=50)verdict="Weak. Enough is broken that you would be relying on one category to carry the rest.";
+  else verdict="Poor across most categories. There is no case for owning this on quality, and a low score is a reason to pass, not a discount to buy.";
+
+  const covNote=r.coverage<60
+    ? " Only "+r.coverage+"% of the score is backed by data, so this is mostly a technical read with the business side missing. Treat the number as provisional."
+    : "";
+  const earnNote=(r.earDays!=null&&r.earDays>=0&&r.earDays<=14)
+    ? " Earnings lands in "+r.earDays+" days, which can override every one of these signals in a single session."
+    : "";
+
+  let s="";
+  if(good.length)s+="What is working: "+good.join("; ")+". ";
+  if(bad.length)s+="What is dragging it: "+bad.join("; ")+". ";
+  return s+verdict+covNote+earnNote;
+}
+
+async function runNextWeekScan(){
+  const btn=$("nwBtn");
+  btn.disabled=true;
+  $("nwOut").innerHTML="";
+  const minScore=Math.max(0,Math.min(100,parseInt($("nwMinConf").value,10)||0));
+  const count=Math.max(10,Math.min(115,parseInt($("nwCount").value,10)||40));
+  const tickers=UNIVERSE.slice(0,count);
+
+  startAction(120000);
+  const t0=Date.now();
+  const rows=[],failed=[];
+  let done=0;
+
+  const tick=setInterval(()=>{
+    $("nwStatus").innerHTML='<p class="status">▸ '+done+'/'+tickers.length+' scanned · '+rows.length+' scored · '+Math.round((Date.now()-t0)/1000)+'s</p>';
+  },500);
+
+  try{
+    const queue=tickers.slice();
+    async function worker(){
+      while(queue.length){
+        if(budgetBlown()){queue.length=0;break;}
+        const t=queue.shift();
+        try{
+          const daily=await getMarket(t,"1y","1d",true);
+          if(!daily||!daily.bars||daily.bars.length<60){failed.push({t:t,why:"not enough history"});continue;}
+          const bars=daily.bars,price=daily.price;
+          const closes=bars.map((b)=>b.c);
+          const sma20=sma(closes,20),sma50=sma(closes,50),sma200=sma(closes,200);
+          const vols=bars.map((b)=>b.v||0);
+          const v20=vols.slice(-20).reduce((x,y)=>x+y,0)/20;
+          const v5=vols.slice(-5).reduce((x,y)=>x+y,0)/5;
+          const volRatio=v20>0?v5/v20:null;
+          const c21=closes.length>21?closes[closes.length-22]:null;
+          const c63=closes.length>63?closes[closes.length-64]:null;
+          const ret1m=c21?(price-c21)/c21*100:null;
+          const ret3m=c63?(price-c63)/c63*100:null;
+          const hi52=daily.high52w||Math.max.apply(null,bars.map((b)=>b.h));
+          const pctOff=hi52?(price-hi52)/hi52*100:null;
+
+          const st=await soft(()=>getStats(t),5000);
+          const news=(await soft(()=>getNews(t),5000))||[];
+          const ns=scoreNews(news);
+          let buyRatio=null,netInsider=null,targetUpside=null;
+          if(st){
+            if(st.recTrend){
+              const tot=st.recTrend.strongBuy+st.recTrend.buy+st.recTrend.hold+st.recTrend.sell;
+              if(tot>0)buyRatio=(st.recTrend.strongBuy+st.recTrend.buy)/tot;
+            }
+            if(st.insiderBuys!=null||st.insiderSells!=null)netInsider=(st.insiderBuys||0)-(st.insiderSells||0);
+            if(st.targetMean&&price)targetUpside=(st.targetMean-price)/price;
+          }
+
+          const sc=scoreStock({price:price,sma20:sma20,sma50:sma50,sma200:sma200,ret1m:ret1m,ret3m:ret3m,
+            pctOff52wHigh:pctOff,volRatio:volRatio,
+            revGrowth:st?st.revGrowth:null,epsGrowth:st?st.epsGrowth:null,margins:st?st.margins:null,
+            d2e:st?st.d2e:null,fcf:st?st.fcf:null,buyRatio:buyRatio,targetUpside:targetUpside,netInsider:netInsider,
+            newsCount:news.length,newsNet:ns.score,newsScored:ns.hits.length});
+          if(!sc){failed.push({t:t,why:"no scoreable data"});continue;}
+          if(sc.total<minScore){failed.push({t:t,why:"score "+sc.total+" under cutoff"});continue;}
+
+          /* earnings is a FLAG, never a filter */
+          const earMs=st&&st.earnDate?st.earnDate:null;
+          const earDays=earMs?Math.ceil((earMs-Date.now())/86400000):null;
+
+          const lvl=findLevels(bars,price);
+          const entry=(lvl.res&&lvl.res[0])?lvl.res[0].price:price*1.02;
+          const structSup=(lvl.sup&&lvl.sup[0])?lvl.sup[0].price:price*0.97;
+          const recentLow=Math.min.apply(null,bars.slice(-10).map((b)=>b.l));
+          const stop=Math.max(structSup,recentLow*0.995);
+          const risk=entry-stop;
+          let target=null,rr=null;
+          if(risk>0){
+            target=entry+risk*1.5;
+            if(lvl.res&&lvl.res[1]&&lvl.res[1].price>entry+risk*1.2)target=Math.min(lvl.res[1].price,entry+risk*3);
+            rr=(target-entry)/risk;
+          }
+
+          rows.push({t:t,name:daily.name||t,price:price,score:sc.total,coverage:sc.coverage,cats:sc.cats,
+            entry:entry,stop:stop,target:target,rr:rr,risk:risk,earDays:earDays,
+            volRatio:volRatio,ret1m:ret1m,ret3m:ret3m,netInsider:netInsider,targetUpside:targetUpside,
+            sma20:sma20,sma50:sma50,sma200:sma200,pctOff:pctOff,buyRatio:buyRatio,
+            revGrowth:st?st.revGrowth:null,epsGrowth:st?st.epsGrowth:null,margins:st?st.margins:null,
+            d2e:st?st.d2e:null,fcf:st?st.fcf:null,
+            newsNet:ns.score,newsHits:ns.hits,newsCount:news.length});
+        }catch(e){failed.push({t:t,why:"data unavailable"});}
+        finally{done++;}
+      }
+    }
+    const ws=[];for(let i=0;i<6;i++)ws.push(worker());
+    await Promise.all(ws);
+
+    clearInterval(tick);
+    $("nwStatus").innerHTML="";
+    const secs=Math.round((Date.now()-t0)/1000);
+
+    if(!rows.length){
+      const tally={};
+      for(const f of failed){const k=f.why.replace(/\d+/g,"#");tally[k]=(tally[k]||0)+1;}
+      let out='<div class="card"><div class="label">WATCHLIST — NOTHING SCORED</div>'
+        +'<p class="small" style="margin-top:8px">Scanned '+done+' of '+tickers.length+' in '+secs+'s.</p>'
+        +'<div class="mono" style="font-size:11px;line-height:1.7;margin-top:10px">';
+      for(const [k,n] of Object.entries(tally).sort((x,y)=>y[1]-x[1]))out+='<div>'+n+' × '+esc(k)+'</div>';
+      out+='</div><p class="small" style="margin-top:10px;color:var(--muted)">A wall of "data unavailable" is the public relays failing, not the market. They are worst on weekends and recover during market hours.</p></div>';
+      $("nwOut").innerHTML=out;
+      return;
+    }
+
+    rows.sort((x,y)=>y.score-x.score);
+    const grade=(s)=>s>=85?"A":s>=75?"B":s>=65?"C":s>=50?"D":"F";
+    const barFor=(c)=>{
+      const col=c.s>=75?"up":c.s>=50?"amber":"down";
+      return '<div style="display:flex;align-items:center;gap:6px;margin:2px 0">'
+        +'<span style="width:96px;color:var(--muted);font-size:10px">'+c.k+'</span>'
+        +'<span style="flex:1;height:5px;background:var(--line);border-radius:3px;overflow:hidden;display:inline-block">'
+        +'<span style="display:block;height:5px;width:'+Math.round(c.s)+'%;background:var(--'+col+')"></span></span>'
+        +'<span style="width:28px;text-align:right;font-size:10px" class="'+col+'">'+Math.round(c.s)+'</span></div>';
+    };
+
+    let html='<div class="card"><div class="label">QUALITY WATCHLIST — '+rows.length+' SCORED</div>'
+      +'<p class="small" style="margin-top:8px">'+done+' scanned in '+secs+'s · ranked by composite score across trend, momentum, volume, fundamentals, analysts and insiders.</p>'
+      +'<p class="small" style="margin-top:10px;color:var(--muted)">Coverage tells you how much of the score is real. A 90 built on 50% coverage is a technical read with the fundamentals missing, not a verified quality name. Earnings is shown as event risk, never used to include or exclude anything.</p></div>';
+
+    for(const r of rows){
+      const g=grade(r.score);
+      const gc=r.score>=75?"up":r.score>=60?"amber":"down";
+      html+='<div class="card" style="border-left:3px solid var(--'+gc+')">'
+        +'<div class="row"><span class="tk">'+esc(r.t)+'</span><span class="px">'+fmtPx(r.price)+'</span>'
+        +'<span class="px '+gc+'">'+r.score+' '+g+'</span></div>'
+        +'<div class="small" style="color:var(--muted);margin-top:3px">'+esc(r.name)
+        +' · coverage '+r.coverage+'%'
+        +(r.earDays!=null&&r.earDays>=0&&r.earDays<=14?' · <span class="amber">earnings in '+r.earDays+'d</span>':'')
+        +'</div>'
+        +'<div style="margin-top:9px">'+r.cats.map(barFor).join("")+'</div>'
+        +'<div class="small" style="margin-top:10px;line-height:1.75;color:var(--ink)">'+esc(explainScore(r))+'</div>'
+        +((r.newsHits&&r.newsHits.length)
+          ? '<div class="mono" style="font-size:11px;line-height:1.6;margin-top:8px">'
+            +r.newsHits.slice(0,4).map(function(hh){
+                return '<div class="'+(hh.dir>0?"up":"down")+'">'+(hh.dir>0?"✓":"✗")+' '+esc(hh.title.slice(0,110))+'</div>';
+              }).join("")
+            +'</div>'
+          : '')
+        +'<div class="mono" style="font-size:11px;line-height:1.7;margin-top:9px;color:var(--muted)">'
+        +(r.ret1m!=null?'1mo '+(r.ret1m>=0?"+":"")+r.ret1m.toFixed(1)+'% · ':'')
+        +(r.ret3m!=null?'3mo '+(r.ret3m>=0?"+":"")+r.ret3m.toFixed(1)+'% · ':'')
+        +(r.volRatio!=null?'vol '+r.volRatio.toFixed(2)+'x':'')
+        +(r.targetUpside!=null?' · analyst target '+(r.targetUpside>=0?"+":"")+(r.targetUpside*100).toFixed(0)+'%':'')
+        +(r.netInsider!=null?' · net insiders '+r.netInsider:'')
+        +'</div>';
+      if(r.target){
+        html+='<div class="mono" style="font-size:11px;line-height:1.7;margin-top:6px">'
+          +'ENTRY <span class="amber">'+fmtPx(r.entry)+'</span> · TARGET <span class="up">'+fmtPx(r.target)+'</span> · STOP <span class="down">'+fmtPx(r.stop)+'</span> · R:R 1:'+r.rr.toFixed(2)
+          +'</div>'
+          +'<button class="ghost" onclick=\'logCall({ticker:"'+r.t+'",name:"'+esc(r.name).replace(/"/g,"&quot;")+'",price:'+r.price+',plan:{bias:"LONG",trigger:'+r.entry+',target:'+r.target+',stop:'+r.stop+',convLabel:"'+g+'"}})\'>ADD TO RECORD</button>';
+      }
+      html+='</div>';
+    }
+    $("nwOut").innerHTML=html;
+    markLive("watchlist · "+rows.length+" scored");
+
+  }catch(e){
+    $("nwStatus").innerHTML='<p class="card err">'+esc(e.message)+'</p>';
+  }finally{
+    clearInterval(tick);
+    endAction();
+    btn.disabled=false;
+  }
+}
+
+/* ---------- NEXT WEEK: THRESHOLD BACKTEST ----------
+   Replays the SAME rules the scan uses, bar by bar, using only data available at
+   that bar. Reports each confidence cutoff separately and splits early vs late so
+   a cutoff that only works in one era is visible instead of hidden.
+
+   Stated limits, because they change how much this is worth:
+   - Yahoo exposes only the NEXT earnings date and a CURRENT insider window. Past
+     earnings are approximated by stepping back one quarter at a time; insider
+     history cannot be reconstructed at all.
+   - So insiders are treated as absent throughout, which means this measures the
+     MODERATE and LOOSE tiers. The HIGH tier is NOT tested here. */
+/* ---------- DOES THE SCORE ACTUALLY RANK? ----------
+   The watchlist is a ranking tool, so the honest test is not win rate, it is
+   whether higher scored names go on to outperform lower scored ones. Buckets
+   every historical bar by its score and compares forward returns.
+
+   Only the categories that can be reconstructed historically are scored here:
+   trend, momentum and volume. Fundamentals, analysts, insiders and news are
+   point-in-time only in this data source and cannot be rebuilt for a past bar,
+   so this measures the TECHNICAL HALF of the score and says so. */
+async function runNextWeekBacktest(){
+  const btn=$("nwBtBtn");
+  btn.disabled=true;
+  $("nwBtOut").innerHTML="";
+  const HORIZ=[10,20];
+  startAction(140000);
+  const t0=Date.now();
+  const tickers=UNIVERSE.slice(0,28);
+  let done=0,used=0;
+  const samples=[];
+
+  const tick=setInterval(()=>{
+    $("nwBtStatus").innerHTML='<p class="status">▸ '+done+'/'+tickers.length+' tickers · '+samples.length+' observations · '+Math.round((Date.now()-t0)/1000)+'s</p>';
+  },500);
+
+  try{
+    const queue=tickers.slice();
+    async function worker(){
+      while(queue.length){
+        if(budgetBlown()){queue.length=0;break;}
+        const t=queue.shift();
+        try{
+          const m=await getMarket(t,"2y","1d",true);
+          if(!m||!m.bars||m.bars.length<260){done++;continue;}
+          const bars=m.bars,closes=bars.map((b)=>b.c),vols=bars.map((b)=>b.v||0);
+          const maxH=Math.max.apply(null,HORIZ);
+          for(let i=210;i<bars.length-maxH;i+=5){
+            const w=closes.slice(0,i+1);
+            const price=closes[i];
+            const s20=sma(w,20),s50=sma(w,50),s200=sma(w,200);
+            if(s20==null||s50==null)continue;
+            const v20=vols.slice(i-19,i+1).reduce((a,b)=>a+b,0)/20;
+            const v5=vols.slice(i-4,i+1).reduce((a,b)=>a+b,0)/5;
+            const volRatio=v20>0?v5/v20:null;
+            const c21=i>21?closes[i-21]:null,c63=i>63?closes[i-63]:null;
+            const ret1m=c21?(price-c21)/c21*100:null;
+            const ret3m=c63?(price-c63)/c63*100:null;
+            const hi52=Math.max.apply(null,bars.slice(Math.max(0,i-251),i+1).map((b)=>b.h));
+            const pctOff=hi52?(price-hi52)/hi52*100:null;
+
+            /* technical half only, same formulas the live scorer uses */
+            const sc=scoreStock({price:price,sma20:s20,sma50:s50,sma200:s200,ret1m:ret1m,ret3m:ret3m,
+              pctOff52wHigh:pctOff,volRatio:volRatio,
+              revGrowth:null,epsGrowth:null,margins:null,d2e:null,fcf:null,
+              buyRatio:null,targetUpside:null,netInsider:null,newsCount:null});
+            if(!sc)continue;
+            const era=i<Math.floor(bars.length*0.55)?"early":"late";
+            const o={score:sc.total,era:era};
+            for(const hz of HORIZ)o["f"+hz]=(closes[i+hz]-price)/price*100;
+            samples.push(o);
+          }
+          used++;
+        }catch(e){}
+        finally{done++;}
+      }
+    }
+    const ws=[];for(let i=0;i<5;i++)ws.push(worker());
+    await Promise.all(ws);
+
+    clearInterval(tick);
+    $("nwBtStatus").innerHTML="";
+
+    const BUCKETS=[{lo:0,hi:50,k:"under 50"},{lo:50,hi:65,k:"50-65"},{lo:65,hi:75,k:"65-75"},
+                   {lo:75,hi:85,k:"75-85"},{lo:85,hi:101,k:"85+"}];
+    function agg(list,key){
+      if(!list.length)return null;
+      const r=list.map((x)=>x[key]).filter((x)=>isFinite(x));
+      if(!r.length)return null;
+      const avg=r.reduce((a,b)=>a+b,0)/r.length;
+      const sorted=r.slice().sort((a,b)=>a-b);
+      return {n:r.length,avg:avg,med:sorted[Math.floor(sorted.length/2)],
+        hit:r.filter((x)=>x>0).length/r.length*100};
+    }
+
+    if(!samples.length){
+      $("nwBtOut").innerHTML='<div class="card" style="margin-top:14px"><p class="small" style="color:var(--down)">No observations. The market data relays returned nothing usable for any ticker, so there is nothing to measure. This is a data outage, not a result. Re-run during market hours.</p></div>';
+      return;
+    }
+
+    let html='<div class="card" style="margin-top:14px"><div class="label">DOES A HIGHER SCORE MEAN A BETTER STOCK?</div>'
+      +'<p class="small" style="margin-top:8px">'+samples.length+' observations across '+used+' tickers over ~2 years. If the score ranks anything, average forward return should climb as you move down this table.</p>';
+
+    for(const hz of HORIZ){
+      const key="f"+hz;
+      html+='<div style="margin-top:14px"><div class="small amber">'+hz+' TRADING DAYS FORWARD</div>'
+        +'<table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:6px">'
+        +'<tr style="color:var(--muted)"><th style="text-align:left">SCORE</th><th>N</th><th>AVG</th><th>MEDIAN</th><th>% POSITIVE</th><th>EARLY</th><th>LATE</th></tr>';
+      const rowsOut=[];
+      for(const b of BUCKETS){
+        const inB=samples.filter((x)=>x.score>=b.lo&&x.score<b.hi);
+        const a=agg(inB,key);
+        if(!a){html+='<tr><td>'+b.k+'</td><td colspan="6" style="color:var(--muted)">no data</td></tr>';continue;}
+        const e=agg(inB.filter((x)=>x.era==="early"),key),l=agg(inB.filter((x)=>x.era==="late"),key);
+        rowsOut.push({k:b.k,a:a});
+        html+='<tr style="border-top:1px solid var(--line)">'
+          +'<td style="padding:5px 0">'+b.k+'</td>'
+          +'<td style="text-align:center">'+a.n+'</td>'
+          +'<td style="text-align:center" class="'+(a.avg>0?"up":"down")+'">'+(a.avg>=0?"+":"")+a.avg.toFixed(2)+'%</td>'
+          +'<td style="text-align:center">'+(a.med>=0?"+":"")+a.med.toFixed(2)+'%</td>'
+          +'<td style="text-align:center">'+a.hit.toFixed(0)+'%</td>'
+          +'<td style="text-align:center" class="'+(e&&e.avg>0?"up":"down")+'">'+(e?(e.avg>=0?"+":"")+e.avg.toFixed(2):"—")+'</td>'
+          +'<td style="text-align:center" class="'+(l&&l.avg>0?"up":"down")+'">'+(l?(l.avg>=0?"+":"")+l.avg.toFixed(2):"—")+'</td>'
+          +'</tr>';
+      }
+      html+='</table>';
+      if(rowsOut.length>=2){
+        const top=rowsOut[rowsOut.length-1].a.avg,bot=rowsOut[0].a.avg;
+        const spread=top-bot;
+        const cls=spread>=1.5?"up":spread>=0.5?"amber":"down";
+        let read;
+        if(spread>=1.5)read="Top bucket beats the bottom by "+spread.toFixed(2)+" points over "+hz+" days. That is real separation, the ranking carries information.";
+        else if(spread>=0.5)read="Top bucket beats the bottom by "+spread.toFixed(2)+" points. Weak separation, better than nothing but not something to size on.";
+        else if(spread>-0.5)read="Spread is "+spread.toFixed(2)+" points, which is noise. Over this window the score did not rank anything. Use it to organize research, not to pick.";
+        else read="Spread is "+spread.toFixed(2)+" points, meaning LOW scores outperformed HIGH ones. The ranking is inverted over this window and should not be trusted as-is.";
+        html+='<div class="small '+cls+'" style="margin-top:6px">'+read+'</div>';
+      }
+      html+='</div>';
+    }
+
+    html+='<div class="mono" style="font-size:11px;line-height:1.8;margin-top:16px;color:var(--muted)">'
+      +'<strong style="color:var(--amber)">WHAT THIS TESTS AND WHAT IT CANNOT</strong><br>'
+      +'Only trend, momentum and volume are reconstructed here. Fundamentals, analysts, insiders and news exist only as of today in this data source, so they cannot be rebuilt for a past bar. This measures the technical half of the score, roughly 52 of the 114 weight.<br>'
+      +'This is a ranking test, not a trading test. It ignores entry, stop, position sizing, slippage and commission. A positive spread means the score sorts stocks, not that a strategy built on it makes money.<br>'
+      +'Observations are sampled every 5 bars and overlap across horizons, so they are not independent. Treat the spread as directional evidence, not a precise statistic.<br>'
+      +'EARLY and LATE split the history so you can see whether the pattern held in both halves. A spread that only exists in one era is not something to rely on.'
+      +'</div></div>';
+    $("nwBtOut").innerHTML=html;
+
+  }catch(e){
+    $("nwBtStatus").innerHTML='<p class="card err">'+esc(e.message)+'</p>';
+  }finally{
+    clearInterval(tick);
+    endAction();
+    btn.disabled=false;
+  }
+}
+
+/* ---------- CONTRACT SCANNER ---------- */
+function nCDF(x){
+  const t=1/(1+0.2316419*Math.abs(x));
+  const d=0.3989423*Math.exp(-x*x/2);
+  const p=d*t*(0.3193815+t*(-0.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));
+  return x>0?1-p:p;
+}
+function bsPrice(S,K,Tyears,iv,isCall){
+  if(!S||!K||!Tyears||Tyears<=0||!iv||iv<=0)return null;
+  const r=0.04;
+  const d1=(Math.log(S/K)+(r+iv*iv/2)*Tyears)/(iv*Math.sqrt(Tyears));
+  const d2=d1-iv*Math.sqrt(Tyears);
+  if(isCall)return S*nCDF(d1)-K*Math.exp(-r*Tyears)*nCDF(d2);
+  return K*Math.exp(-r*Tyears)*nCDF(-d2)-S*nCDF(-d1);
+}
+function bsDelta(S,K,Tyears,iv,isCall){
+  if(!S||!K||!Tyears||Tyears<=0||!iv||iv<=0)return null;
+  const d1=(Math.log(S/K)+(0.04+iv*iv/2)*Tyears)/(iv*Math.sqrt(Tyears));
+  return isCall?nCDF(d1):nCDF(d1)-1;
+}
+function quickTrend(bars,price){
+  const closes=bars.map((b)=>b.c);
+  const s20=sma(closes,20),s50=sma(closes,50);
+  let sc=0;
+  if(s20&&price>s20)sc++;else if(s20)sc--;
+  if(s20&&s50){if(s20>s50)sc++;else sc--;}
+  if(closes.length>=6){const m5=(price-closes[closes.length-6])/closes[closes.length-6];if(m5>0.02)sc++;else if(m5<-0.02)sc--;}
+  return sc>=2?"long":sc<=-2?"short":"neutral";
+}
+const SCAN_CORE=["SPY","QQQ","IWM","TSLA","NVDA","AAPL","AMD","META","AMZN","MSFT","PLTR","COIN","HOOD","MSTR"];
+/* full liquid optionable universe — every name here has real option volume */
+const UNIVERSE=[
+"SPY","QQQ","IWM","DIA","SMH","XLF","XLE","XLK","ARKK","TQQQ","SOXL",
+"NVDA","AMD","INTC","MU","AVGO","QCOM","TSM","ARM","MRVL","SMCI","ON","TXN",
+"AAPL","MSFT","AMZN","GOOGL","META","TSLA","NFLX","DIS","UBER","ABNB","SHOP","SQ","PYPL",
+"PLTR","SNOW","CRWD","NET","DDOG","ZS","PANW","ORCL","CRM","NOW","ADBE","IBM",
+"COIN","HOOD","MSTR","RIOT","MARA","CLSK","SOFI","AFRM","UPST",
+"JPM","BAC","GS","MS","WFC","C","SCHW","V","MA",
+"XOM","CVX","OXY","SLB","FCX","CAT","DE","BA","GE","LMT","RTX",
+"JNJ","PFE","MRNA","LLY","UNH","ABBV","AMGN","GILD","BMY",
+"WMT","COST","TGT","HD","LOW","NKE","SBUX","MCD","KO","PEP",
+"F","GM","RIVN","LCID","NIO","DAL","AAL","CCL","LUV",
+"T","VZ","CMCSA","PARA","WBD","SNAP","PINS","RBLX","U","DKNG"];
+function isMarketOpen(){
+  try{
+    const ny=new Date(new Date().toLocaleString("en-US",{timeZone:"America/New_York"}));
+    const d=ny.getDay();if(d===0||d===6)return false;
+    const m=ny.getHours()*60+ny.getMinutes();
+    return m>=570&&m<960;
+  }catch(e){return true;}
+}
+async function runContractScan(){
+  const sideSel=$("scSide").value, expSel=$("scExp").value;
+  const is0DTE=(expSel==="0dte");
+  const maxP=parseFloat($("scMax").value)||0;
+  $("scBtn").disabled=true;$("scOut").innerHTML="";
+  $("scStatus").innerHTML='<p class="status">▸ building the live scan list…</p>';
+  try{
+    /* Names that actually carry daily or near-daily expirations. Scanning the full
+       universe for 0DTE is pointless because most tickers have no contract to buy. */
+    const DAILY_EXP=["SPY","QQQ","IWM","DIA","SPX","NDX","TSLA","NVDA","AAPL","AMZN","META","MSFT","GOOGL","AMD","NFLX"];
+    let list;
+    if(is0DTE){
+      list=DAILY_EXP.slice();
+    }else{
+      list=UNIVERSE.slice();
+      try{const g=await getScreener("day_gainers",true);
+        for(const q of g.slice(0,10)){if(q.price>=5&&list.indexOf(q.ticker)<0)list.push(q.ticker);}}catch(e){}
+      try{const a=await getScreener("most_actives",true);
+        for(const q of a.slice(0,10)){if(q.price>=5&&list.indexOf(q.ticker)<0)list.push(q.ticker);}}catch(e){}
+    }
+    const now=Date.now()/1000, plays=[];
+    const started=Date.now(), BUDGET=150000;
+    const mktOpen=isMarketOpen();
+    const MINCONF=parseFloat((document.getElementById("minConf")||{}).value)||70;
+    const MINMOVE=parseFloat((document.getElementById("minMove")||{}).value)||4;
+    const why={neutral:0,weak:0,dataMiss:0,noContract:0,lowConf:0,smallMove:0,margins:[],confs:[],noIntra:0};
+    let done=0;
+    async function scanOne(t){
+      if(Date.now()-started>BUDGET)return;
+      try{
+        /* 0DTE is an intraday trade, so it must be judged on intraday structure.
+           Reading it off 6 months of daily bars is why almost everything came back
+           trend-neutral: a name can chop on the daily while trending cleanly today. */
+        let mkt,intraTrend=null;
+        if(is0DTE){
+          mkt=await getMarket(t,"5d","15m",true);
+          if(!mkt||!mkt.bars||mkt.bars.length<30){why.noIntra++;return;}
+          const ic=mkt.bars.map((b)=>b.c);
+          const e9=sma(ic,9),e21=sma(ic,21);
+          const last=ic[ic.length-1];
+          intraTrend=(e9!=null&&e21!=null)?(last>=e9&&e9>=e21?1:(last<=e9&&e9<=e21?-1:0)):0;
+        }else{
+          mkt=await getMarket(t,"6mo","1d",true);
+        }
+        const price=mkt.price;
+        const levels=findLevels(mkt.bars,price);
+        const patterns=detectPatterns(mkt.bars,price);
+        let rating=rateSetup(price,mkt.bars,levels,null,patterns,null);
+        /* on 0DTE, the intraday trend can supply the direction the daily engine
+           refuses to call, but only when the tape is genuinely stacked */
+        if(is0DTE&&rating.dir==="neutral"&&intraTrend!==0){
+          rating.dir=intraTrend>0?"long":"short";
+          if(!rating.plan)rating.plan=mkPlan(price,levels,rating.dir,mkt.bars);
+        }
+        if(rating.dir==="neutral"||!rating.plan){
+          why.neutral++;
+          const mg=Math.abs((rating.bullScore||0)-(rating.bearScore||0));
+          why.margins.push(mg);
+          return;
+        }
+        let strength=Math.abs(rating.bullScore-rating.bearScore);
+        if(strength<1.5){why.weak++;return;}
+        /* passed the technical screen — now fold in news + insiders + earnings before committing a contract to it */
+        let stats2=null,news2=[];
+        stats2=await soft(()=>getStats(t),6000);
+        news2=(await soft(()=>getNews(t),6000))||[];
+        rating=rateSetup(price,mkt.bars,levels,stats2,patterns,scoreNews(news2));
+        strength=Math.abs(rating.bullScore-rating.bearScore);
+        if(rating.dir==="neutral"||!rating.plan||strength<2){why.weak++;return;}
+        if(rating.conv.conf<MINCONF){why.lowConf++;why.confs.push(rating.conv.conf);return;}
+        if((rating.plan.movePct||0)<MINMOVE){why.smallMove++;return;}
+        const want=rating.dir==="long"?"calls":"puts";
+        if(sideSel==="calls"&&want!=="calls")return;
+        if(sideSel==="puts"&&want!=="puts")return;
+        const plan=rating.plan;
+        const base=await getChain(t,null,true);
+        if(!base||!base.expirationDates||!base.expirationDates.length){why.dataMiss++;return;}
+        let expEpoch=null;
+        const distPct=Math.abs(plan.trigger-price)/price;
+        let wantWindow=expSel;
+        if(expSel==="auto")wantWindow=(distPct<=0.025)?"week":"swing";
+        if(wantWindow==="0dte")expEpoch=base.expirationDates[0];
+        else if(wantWindow==="week"){for(const e of base.expirationDates){if(e-now>=1.5*86400&&e-now<=8*86400){expEpoch=e;break;}}}
+        else{for(const e of base.expirationDates){if(e-now>=12*86400&&e-now<=35*86400){expEpoch=e;break;}}}
+        if(!expEpoch)expEpoch=base.expirationDates[Math.min(1,base.expirationDates.length-1)];
+        const chain=(expEpoch===base.expirationDates[0])?base:await getChain(t,expEpoch,true);
+        const opts=chain&&chain.options&&chain.options[0];
+        const arr=opts?(want==="calls"?opts.calls:opts.puts):null;
+        if(!arr||!arr.length){why.dataMiss++;return;}
+        const Ty=Math.max((expEpoch-now)/(365*86400),0.5/365);
+        let best=null,bestGap=Infinity;
+        for(const c of arr){
+          const hasQuote=!!(c.bid&&c.ask);
+          const mid=hasQuote?((c.bid+c.ask)/2):(c.lastPrice||0);
+          if(!mid||mid<0.03)continue;
+          if(maxP>0&&mid>maxP)continue;
+          const volu=c.volume||0,oi=c.openInterest||0;
+          if(mktOpen){ if(volu<25&&oi<100)continue; }
+          else { if(oi<100)continue; }
+          const spread=hasQuote?((c.ask-c.bid)/mid):null;
+          if(mktOpen&&(spread==null||spread>0.35))continue;
+          let dl=(c.delta!=null&&isFinite(c.delta)&&c.delta!==0)?c.delta:bsDelta(price,c.strike,Ty,c.impliedVolatility,want==="calls");
+          if(dl==null)continue;
+          const gap=Math.abs(Math.abs(dl)-0.48);
+          if(gap<bestGap){bestGap=gap;best={c:c,mid:mid,vol:volu,oi:oi,spread:spread,delta:dl,theta:c.theta,stale:!hasQuote};}
+        }
+        if(!best){why.noContract++;return;}
+        const b=best;
+        const intrinsicAtTarget=want==="calls"?Math.max(plan.target-b.c.strike,0):Math.max(b.c.strike-plan.target,0);
+        const estAtTarget=bsPrice(plan.target,b.c.strike,Math.max(Ty*0.5,0.25/365),b.c.impliedVolatility,want==="calls");
+        const _dte=Math.max(0,Math.round((expEpoch*1000-Date.now())/86400000));
+        plays.push({t:t,want:want,rating:rating,plan:plan,price:price,strike:b.c.strike,exp:expEpoch,
+          kind:(_dte<=0?"0DTE":(_dte<=2?"SAME-WEEK":"SWING")),dte:_dte,
+          mid:b.mid,vol:b.vol,oi:b.oi,spread:b.spread,stale:b.stale,iv:b.c.impliedVolatility,delta:b.delta,theta:b.theta,
+          intrTgt:intrinsicAtTarget,estTgt:estAtTarget,strength:strength,
+          score:strength*300+b.vol+b.oi*0.25-(b.spread*800)});
+      }catch(e){}
+      finally{
+        done++;
+        $("scStatus").innerHTML='<p class="status">▸ scanning fast — '+done+'/'+list.length+' names ('+plays.length+' plays so far, '+Math.round((Date.now()-started)/1000)+'s)…</p>';
+      }
+    }
+    /* 4 parallel workers — 4x the speed, still gentle on the relays */
+    const queue=list.slice();
+    async function worker(){while(queue.length&&Date.now()-started<BUDGET){await scanOne(queue.shift());}}
+    await Promise.all([worker(),worker(),worker(),worker(),worker(),worker(),worker(),worker()]);
+    $("scStatus").innerHTML="";
+    if(!plays.length){
+      let diag="";
+      if(why.margins.length){
+        const ms=why.margins.slice().sort((a,b)=>b-a);
+        const near=ms.filter((x)=>x>=1.5).length;
+        const flat=ms.filter((x)=>x<1).length;
+        const med=ms[Math.floor(ms.length/2)];
+        diag+='<br><br><span class="amber">HOW CLOSE WERE THEY?</span><br>'
+          +'Direction needs an evidence margin of 2.0. Of the '+why.margins.length+' called neutral: '
+          +'best was '+ms[0].toFixed(1)+', median '+med.toFixed(1)+', '
+          +near+' were within reach (1.5+), '+flat+' were genuinely flat (under 1.0).<br>';
+        diag+=(near>=5)
+          ? '<span class="down">A lot of names are sitting just under the line, so the threshold is the binding constraint today, not the market.</span>'
+          : '<span class="up">Most names are genuinely directionless. This is a chop day and an empty screen is the correct answer, not a bug.</span>';
+      }
+      if(why.confs.length){
+        const cs=why.confs.slice().sort((a,b)=>b-a);
+        diag+='<br><br><span class="amber">THE CONFIDENCE GATE</span><br>'
+          +why.confs.length+' names had a real direction but died at your '+MINCONF+'% cutoff. '
+          +'Their confidence ran '+cs[cs.length-1]+'% to '+cs[0]+'%. '
+          +'Setting MIN CONF to '+Math.max(50,cs[0]-1)+' would have let the best of them through. '
+          +'<span class="down">Remember confidence here is evidence strength, not win probability. Lowering it shows you more marginal setups, it does not make them better.</span>';
+      }
+      $("scOut").innerHTML='<p class="small" style="margin-top:12px;line-height:1.8">No plays made the cut. The receipts: '
+        +why.neutral+' trend-neutral, '+why.weak+' too weak, '+why.lowConf+' under '+MINCONF+'% confidence, '+why.smallMove+' move too small, '+why.noContract+' no liquid contract, '+why.dataMiss+' data misses'+(why.noIntra?', '+why.noIntra+' no intraday data':'')+'.'
+        +diag
+        +(mktOpen?'':' <span class="amber">MARKET IS CLOSED — chains go stale overnight. Best scan window: 9:35am\u20133:45pm ET. Anything found now is a setup for tomorrow’s open.</span>')
+        +'</p>';
+      return;
+    }
+    plays.sort((a,b)=>b.score-a.score);
+    window._optPlays=plays.slice(0,8);
+    /* pro-desk table view */
+    const tbl='<div class="card" style="overflow-x:auto;padding:8px"><table style="width:100%;border-collapse:collapse;font-family:\'JetBrains Mono\',monospace;font-size:11px;white-space:nowrap">'
+      +'<tr style="color:var(--muted);text-align:left"><th style="padding:6px 8px">TICKER</th><th>DIR</th><th>CONF</th><th>CONV</th><th>SPOT</th><th>CONTRACT</th><th>EXP</th><th>DTE</th><th>MID</th><th>DELTA</th><th>MOVE%</th><th>OI</th><th>VOL</th></tr>'
+      +window._optPlays.map((p)=>{
+        const dte=Math.max(0,Math.round((p.exp-Date.now()/1000)/86400));
+        const expStr=new Date(p.exp*1000).toISOString().slice(0,10);
+        return '<tr style="border-top:1px solid var(--line)"><td style="padding:7px 8px;font-weight:700">'+esc(p.t)+'</td>'
+        +'<td class="'+(p.want==="calls"?"up":"down")+'" style="font-weight:700">'+(p.want==="calls"?"BULLISH":"BEARISH")+'</td>'
+        +'<td class="'+(p.rating.conv.conf>=80?"up":p.rating.conv.conf>=65?"amber":"down")+'" style="font-weight:700">'+p.rating.conv.conf+'%</td>'
+        +'<td>'+p.rating.conv.tier+'/5</td>'
+        +'<td>'+fmtPx(p.price)+'</td>'
+        +'<td class="'+(p.want==="calls"?"up":"down")+'">'+(p.want==="calls"?"CALL ":"PUT ")+fmtPx(p.strike)+'</td>'
+        +'<td>'+expStr+'</td><td>'+dte+'</td><td>'+p.mid.toFixed(2)+'</td>'
+        +'<td>'+(+p.delta).toFixed(3)+'</td><td class="up">'+(p.plan.movePct||'—')+'%</td><td>'+fmtBig(p.oi)+'</td><td>'+fmtBig(p.vol)+'</td></tr>';
+      }).join("")+'</table></div>';
+    $("scOut").innerHTML=tbl+window._optPlays.map((p,i)=>{
+      const expStr=new Date(p.exp*1000).toLocaleDateString(undefined,{month:"short",day:"numeric"});
+      const col=p.want==="calls"?"up":"down";
+      const tgtShow=(p.estTgt!=null&&p.estTgt>p.intrTgt)?p.estTgt:p.intrTgt;
+      return '<div class="card" style="border-left:3px solid var(--'+(p.want==="calls"?"up":"down")+')">'
+      +'<div class="row"><span class="tk" style="font-size:20px">'+esc(p.t)+' <span class="'+col+'">'+fmtPx(p.strike)+(p.want==="calls"?"C":"P")+'</span></span>'
+      +'<span class="mono" style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:5px;background:'+(p.kind==="0DTE"?"var(--down)":p.kind==="SAME-WEEK"?"var(--amber)":"var(--up)")+';color:#0C0E12">'+p.kind+(p.kind!=="0DTE"?" · "+p.dte+"d":"")+'</span>'
+      +'<span class="mono '+col+'" style="font-size:13px;font-weight:700">'+(p.want==="calls"?"CALLS":"PUTS")+' · '+p.rating.verdict+'</span></div>'
+      +'<div class="mono" style="font-size:11px;margin-top:6px;color:var(--muted)">'
+      +(p.kind==="0DTE"
+        ? '<span class="down">Intraday trade. Expires today, so it is worth zero at the bell if it does not work. Best window is 9:45am to 1pm ET, after roughly 1:30pm decay accelerates hard. Take profits on the way up, do not hold for the perfect exit.</span>'
+        : p.kind==="SAME-WEEK"
+          ? '<span class="amber">Short swing, '+p.dte+' days to expiry. Enough room for one pullback, not two. Manage it daily.</span>'
+          : '<span class="up">Swing, '+p.dte+' days to expiry. Sized to let the daily setup play out, expiry is 2 to 4x the expected hold.</span>')
+      +'</div>'
+      +'<div class="mono" style="font-size:12px;line-height:2.1;margin-top:8px">'
+      +'contract ≈ <span class="amber">$'+p.mid.toFixed(2)+'/sh ($'+(p.mid*100).toFixed(0)+')</span> · exp <span class="amber">'+expStr+'</span> · delta '+(+p.delta).toFixed(2)+' · IV '+(p.iv?(p.iv*100).toFixed(0)+'%':'—')+(p.theta!=null&&isFinite(p.theta)?' · theta '+(+p.theta).toFixed(3):'')
+      +'<br>underlying '+fmtPx(p.price)+' → trigger <span class="amber">'+fmtPx(p.plan.trigger)+'</span> → target <span class="up">'+fmtPx(p.plan.target)+'</span> · cut if '+(p.want==="calls"?"closes below":"closes above")+' <span class="down">'+fmtPx(p.plan.stop)+'</span>'
+      +'<br>UNDERLYING MOVE TO TARGET: <span class="up" style="font-weight:700">'+(p.plan.movePct||"—")+'%</span> · R:R '+(p.plan.rr||"—")+':1'
+      +'<br>CONTRACT TARGET: <span class="up">≈$'+tgtShow.toFixed(2)+'/sh ($'+(tgtShow*100).toFixed(0)+')</span> if the underlying target hits'+(tgtShow>p.mid?' = <span class="up" style="font-weight:700">+'+Math.round((tgtShow/p.mid-1)*100)+'% on the contract</span>':'')+(p.intrTgt>0?' (intrinsic floor $'+p.intrTgt.toFixed(2)+')':' (est.)')
+            +'<br>CONFIDENCE <span class="'+(p.rating.conv.conf>=80?"up":"amber")+'" style="font-weight:700">'+p.rating.conv.conf+'%</span> · '+("█".repeat(p.rating.conv.tier)+"░".repeat(5-p.rating.conv.tier))+' '+p.rating.conv.label+' — sizing at '+Math.round(p.rating.conv.mult*100)+'% risk'
+      +'<br><span class="eyebrow">SIZE IT</span> $'+Math.round(getRisk()*p.rating.conv.mult)+' at risk → <span class="amber">'+(sizeContracts(p.mid,p.rating.conv.mult)||1)+' contract'+((sizeContracts(p.mid,p.rating.conv.mult)||1)>1?'s':'')+'</span> (full-loss basis — 0DTEs can go to zero)'
+      +((p.exp-Date.now()/1000<86400&&nyMinutesNow()>=810)?'<br><span class="down">⚠ past 1:30pm on a same-day contract — theta cliff hours; smaller size, faster exits, no "waiting for it to come back"</span>':'')
++'<br>liquidity: vol '+fmtBig(p.vol)+' · OI '+fmtBig(p.oi)+' · spread '+(p.spread!=null?(p.spread*100).toFixed(0)+'%':'n/a')+(p.stale?' · <span class="amber">last-trade price — market closed, confirm at open</span>':'')
+      +'</div>'
+      +'<div style="margin-top:6px">'+p.rating.bull.slice(0,2).map((r)=>'<div class="ev"><span class="up">▲</span> '+esc(r)+'</div>').join("")
+      +p.rating.bear.slice(0,1).map((r)=>'<div class="ev"><span class="down">▼</span> '+esc(r)+'</div>').join("")+'</div>'
+      +'<div class="row" style="gap:8px"><button class="ghost" onclick="logCall({ticker:\''+esc(p.t)+'\',name:\''+esc(p.t)+'\',price:'+p.price+',plan:_optPlays['+i+'].plan})">LOG CALL</button>'
+      +'<button class="ghost" onclick="prefillOption(\''+esc(p.t)+'\')">FULL READ</button></div>'
+      +'</div>';}).join("")
+      +(mktOpen?'':'<p class="small amber" style="margin-top:10px">⚠ MARKET CLOSED — these are setups for tomorrow’s open. Premiums are last trades; confirm live at 9:30.</p>')
+      +'<p class="small" style="margin-top:10px">news, insiders & earnings radar factored into every play above · strikes picked at ~0.48 delta (real odds, not lotto tickets) · greeks from the exchange delayed chain when available, estimated otherwise · chain data ~15-min delayed · targets from Black-Scholes at your underlying target · scanned '+list.length+' liquid names + live gainers · run FULL READ before entering to check the earnings radar · not financial advice</p>';
+    markLive("bot option calls: "+window._optPlays.length+" plays spotted");
+  }catch(e){
+    $("scStatus").innerHTML='<p class="card err">'+esc(e.message)+'</p>';
+  }finally{$("scBtn").disabled=false;}
+}
+function prefillOption(t){$("optTicker").value=t;runOptions();window.scrollTo({top:0,behavior:"smooth"});}
+
+/* ---------- NEWS FEED: everything, tagged bullish/bearish ---------- */
+const NEWS_BASKET=["SPY","QQQ","NVDA","TSLA","AAPL","AMD","META"];
+async function runNews(){
+  const t=$("newsTicker").value.trim().toUpperCase();
+  $("newsBtn").disabled=true;
+  $("newsFeed").innerHTML="";
+  $("newsStatus").innerHTML='<p class="status">▸ pulling '+(t?esc(t)+" headlines":"the market-wide feed")+'…</p>';
+  try{
+    let items=[];
+    if(t){
+      const news=await getNews(t);
+      items=news.map((n)=>Object.assign({},n,{src:t}));
+    }else{
+      let basket=NEWS_BASKET.slice();
+      try{const g=await getScreener("day_gainers",true);
+        for(const q of g.slice(0,4)){if(basket.indexOf(q.ticker)<0)basket.push(q.ticker);}}catch(e){}
+      const results=await Promise.allSettled(basket.map(function(b){
+        return (async function(){
+          const j=await ygetFast("https://query1.finance.yahoo.com/v1/finance/search?q="+b+"&newsCount=5&quotesCount=0");
+          return ((j&&j.news)||[]).map((n)=>({title:n.title,publisher:n.publisher,url:n.link,
+            time:n.providerPublishTime?n.providerPublishTime*1000:null,src:b}));
+        })();
+      }));
+      for(const r of results){if(r.status==="fulfilled")items=items.concat(r.value);}
+    }
+    /* dedupe by title, newest first */
+    const seen=new Set();
+    items=items.filter((n)=>{const k=(n.title||"").slice(0,80);if(seen.has(k))return false;seen.add(k);return true;});
+    items.sort((a,b)=>(b.time||0)-(a.time||0));
+    items=items.slice(0,30);
+    $("newsStatus").innerHTML="";
+    if(!items.length){
+      $("newsFeed").innerHTML='<p class="small" style="margin-top:12px">No headlines came back — relays may be busy. Hit pull again in ~20s.</p>';
+      return;
+    }
+    let bulls=0,bears=0;
+    const rows=items.map((n)=>{
+      const d=classifyHeadline(n.title);
+      if(d>0)bulls++;if(d<0)bears++;
+      const badge=d>0?'<span class="up" style="font-weight:700">✓</span>':d<0?'<span class="down" style="font-weight:700">✗</span>':'<span style="color:var(--muted)">◆</span>';
+      const when=n.time?new Date(n.time).toLocaleString(undefined,{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}):"";
+      return '<a class="newsitem" href="'+esc(n.url)+'" target="_blank" rel="noreferrer" style="display:flex;gap:12px;align-items:flex-start">'
+        +'<span style="font-size:16px;line-height:1.4">'+badge+'</span>'
+        +'<span style="flex:1"><span style="font-size:14px">'+esc(n.title)+'</span>'
+        +'<div class="small" style="margin-top:3px">'+esc(n.src||"")+' · '+esc(n.publisher||"")+' · '+when+'</div></span></a>';
+    }).join("");
+    $("newsFeed").innerHTML=
+      '<div class="card"><div class="mono small">FEED READ: <span class="up">'+bulls+' bullish ✓</span> · <span class="down">'+bears+' bearish ✗</span> · '+(items.length-bulls-bears)+' neutral ◆ — '
+      +(bulls>bears?'<span class="up">tape leans risk-on</span>':bears>bulls?'<span class="down">tape leans risk-off</span>':'mixed tape')+'</div></div>'
+      +rows
+      +'<p class="small" style="margin-top:10px">tags come from the same keyword engine that scores news into your grades — a headline machine, not a truth machine; big stories deserve your own read · pull again anytime for the freshest batch</p>';
+    markLive("news feed: "+items.length+" headlines");
+  }catch(e){
+    $("newsStatus").innerHTML='<p class="card err">'+esc(e.message)+'</p>';
+  }finally{$("newsBtn").disabled=false;}
+}
+
+/* ---------- BACKTEST: replay the engine over real history ---------- */
+function btResolve(bars,i,plan){
+  /* identical rules to live grading: trigger within 3 bars or NO FILL,
+     then first touch of target/stop within 10 bars; same-bar both = loss;
+     10-bar timeout = exit at close, partial R */
+  const long=plan.bias!=="short";
+  const risk=Math.abs(plan.trigger-plan.stop);
+  if(!risk)return null;
+  let triggered=false;
+  for(let j=i+1;j<Math.min(i+1+10,bars.length);j++){
+    const b=bars[j],days=j-i;
+    if(!triggered){
+      if(days>3)return {outcome:"nofill",exitR:0,days:days,triggered:false};
+      if(long?(b.h>=plan.trigger):(b.l<=plan.trigger))triggered=true;
+      else continue;
+    }
+    const hitT=long?(b.h>=plan.target):(b.l<=plan.target);
+    const hitS=long?(b.l<=plan.stop):(b.h>=plan.stop);
+    if(hitT&&hitS)return {outcome:"loss",exitR:-1,days:days,triggered:true};
+    if(hitS)return {outcome:"loss",exitR:-1,days:days,triggered:true};
+    if(hitT)return {outcome:"win",exitR:Math.abs(plan.target-plan.trigger)/risk,days:days,triggered:true};
+  }
+  if(!triggered)return {outcome:"nofill",exitR:0,days:3,triggered:false};
+  const j=Math.min(i+10,bars.length-1);
+  const lastC=bars[j].c;
+  const r=(long?(lastC-plan.trigger):(plan.trigger-lastC))/risk;
+  return {outcome:"timeout",exitR:Math.max(-1,Math.min(r,5)),days:j-i,triggered:true};
+}
+async function runBacktest(){
+  $("btBtn").disabled=true;
+  $("btOut").innerHTML="";
+  $("btStatus").innerHTML='<p class="status">▸ pulling 2 years of candles for the core universe…</p>';
+  try{
+    const list=UNIVERSE.slice(0,24);
+    const hist={};let got=0;
+    const q=list.slice();
+    async function w(){while(q.length){const t=q.shift();
+      try{let m=null;
+        try{m=await getMarket(t,"2y","1d",true);}catch(e1){}
+        if(!m||!m.bars||m.bars.length<250){try{m=await getMarket(t,"1y","1d");}catch(e2){}}
+        if(m&&m.bars&&m.bars.length>=250)hist[t]=m.bars;}catch(e){}
+      got++;$("btStatus").innerHTML='<p class="status">▸ data '+got+'/'+list.length+'…</p>';}}
+    await Promise.all([w(),w(),w(),w()]);
+    const names=Object.keys(hist);
+    if(names.length<4)throw new Error("only "+names.length+" tickers loaded — relays throttling. Wait ~60s and retry.");
+    $("btStatus").innerHTML='<p class="status">▸ replaying the engine day by day (thousands of evaluations)…</p>';
+    await new Promise((res)=>setTimeout(res,50));
+    const trades=[];
+    for(const t of names){
+      const bars=hist[t];
+      let i=90;
+      while(i<bars.length-2){
+        const win=bars.slice(Math.max(0,i-129),i+1);
+        const price=win[win.length-1].c;
+        const levels=findLevels(win,price);
+        const patterns=detectPatterns(win,price);
+        const r=rateSetup(price,win,levels,null,patterns,null);
+        const strength=Math.abs(r.bullScore-r.bearScore);
+        if(r.dir!=="neutral"&&r.plan&&strength>=2.5){
+          const res=btResolve(bars,i,r.plan);
+          if(res&&res.outcome!=="nofill"){
+            trades.push({t:t,ts:bars[i].t,bias:r.plan.bias,conv:r.conv.label,outcome:res.outcome,exitR:res.exitR,days:res.days});
+            i+=Math.max(res.days,2);
+          } else if(res){trades.push({t:t,ts:bars[i].t,bias:r.plan.bias,conv:r.conv.label,outcome:"nofill",exitR:0,days:res.days});i+=3;}
+          else i++;
+        } else i++;
+      }
+    }
+    const fills=trades.filter((x)=>x.outcome!=="nofill");
+    const nofills=trades.length-fills.length;
+    const wins=fills.filter((x)=>x.outcome==="win");
+    const losses=fills.filter((x)=>x.outcome==="loss");
+    const touts=fills.filter((x)=>x.outcome==="timeout");
+    if(!fills.length)throw new Error("no filled signals generated — unexpected; run again");
+    const wr=wins.length/(wins.length+losses.length||1)*100;
+    let sumPos=0,sumNeg=0,sumR=0,sumDays=0;
+    for(const x of fills){sumR+=x.exitR;sumDays+=x.days;if(x.exitR>0)sumPos+=x.exitR;else sumNeg+=Math.abs(x.exitR);}
+    const pf=sumNeg?sumPos/sumNeg:Infinity;
+    const avgR=sumR/fills.length, avgDays=sumDays/fills.length;
+    /* max drawdown on chronological R equity curve */
+    const chron=fills.slice().sort((a,b)=>a.ts-b.ts);
+    let eq=0,peak=0,mdd=0;
+    for(const x of chron){eq+=x.exitR;if(eq>peak)peak=eq;const dd=peak-eq;if(dd>mdd)mdd=dd;}
+    /* per conviction */
+    const tiers={};
+    for(const x of fills){if(x.outcome==="timeout")continue;
+      if(!tiers[x.conv])tiers[x.conv]={w:0,l:0};
+      tiers[x.conv][x.outcome==="win"?"w":"l"]++;}
+    const pfCol=pf>=1.5?"up":pf>=1?"amber":"down";
+    $("btStatus").innerHTML="";
+    $("btOut").innerHTML=
+      '<div class="card"><div class="label">RESULTS — '+fills.length+' FILLED SIGNALS ACROSS '+names.length+' TICKERS, ~2 YEARS</div>'
+      +'<div class="mono" style="font-size:13px;line-height:2.2">'
+      +'win rate (target-first vs stop-first): <span class="'+(wr>=55?"up":wr>=45?"amber":"down")+'" style="font-size:18px;font-weight:700">'+wr.toFixed(1)+'%</span> ('+wins.length+'W / '+losses.length+'L, +'+touts.length+' timeouts graded by exit price)'
+      +'<br>profit factor: <span class="'+pfCol+'" style="font-size:18px;font-weight:700">'+(pf===Infinity?'∞':pf.toFixed(2))+'</span> · avg trade '+(avgR>=0?'+':'')+avgR.toFixed(2)+'R · avg hold '+avgDays.toFixed(1)+' days'
+      +'<br>max drawdown: <span class="down">-'+mdd.toFixed(1)+'R</span> (worst peak-to-valley streak — this WILL happen live; size so it\u2019s survivable)'
+      +'<br>no-fills: '+nofills+' signals never triggered (excluded — you\u2019d never have entered)'
+      +'</div>'
+      +(Object.keys(tiers).length?'<div class="mono small" style="margin-top:8px">by conviction: '+Object.keys(tiers).map((k)=>{const x=tiers[k],n=x.w+x.l;return k+' <span class="'+(x.w/n>=0.5?"up":"down")+'">'+Math.round(x.w/n*100)+'%</span> ('+n+')';}).join(' · ')+'</div>':'')
+      +'</div>'
+      +'<div class="card"><div class="label">METHODOLOGY — THE ANSWERS TO THE RIGHT QUESTIONS</div>'
+      +'<div class="mono" style="font-size:12px;line-height:2">'
+      +'<span class="amber">What constitutes a win?</span> Trigger level touched first (within 3 sessions or the signal is a NO FILL), then TARGET touched before STOP on the daily candle path. Both touched same day = counted a LOSS. Conservative by design.'
+      +'<br><span class="amber">Optimal fill?</span> No. Entry assumed AT the trigger price, exit at target/stop levels. No mid-bar luck, no best-price assumptions.'
+      +'<br><span class="amber">Stop loss?</span> Structure-based on every signal (nearest opposing level). Every loss = exactly -1R. No "mental stops."'
+      +'<br><span class="amber">Drawdown?</span> Reported above in R off the chronological equity curve.'
+      +'<br><span class="amber">Theta?</span> NOT modeled — this tests the underlying stock path, not option premium decay. That\u2019s why avg hold time is reported and why live scans set expirations 2-4x the expected hold. A stock-level win can still be an option loss if you buy short-dated; respect the expiration guidance.'
+      +'</div></div>'
+      +'<div class="card"><div class="label">READ THIS BEFORE YOU TRUST ANY NUMBER — MINE INCLUDED</div>'
+      +'<div class="small" style="line-height:1.8">This is an IN-SAMPLE technical backtest: the rules are being scored on the kind of data they were designed around, so real-world results will run somewhat worse, not better. Historical news/insider data isn\u2019t available, so live scans have MORE information than this test did. Past performance never guarantees the future \u2014 anyone telling you they win "80%+ no matter what" is selling a backtest, not a track record. The only number that ultimately matters is your live RECORD tab, graded trade by trade with real fills.</div></div>';
+    markLive("backtest complete: "+fills.length+" signals");
+  }catch(e){
+    $("btStatus").innerHTML='<p class="card err">'+esc(e.message)+'</p>';
+  }finally{$("btBtn").disabled=false;}
+}
+
+/* ---------- RESEARCH LAB: variant sweep + walk-forward validation ---------- */
+const LAB_KEY="deuce-lab-config";
+function getLabConfig(){try{const v=localStorage.getItem(LAB_KEY);return v?JSON.parse(v):null;}catch(e){return null;}}
+function labPlan(price,levels,dir,bars,V){
+  /* build a plan under variant rules V: {tmult, minPct, minRR} */
+  let r1=levels.res[0]&&levels.res[0].price, s1=levels.sup[0]&&levels.sup[0].price;
+  if(bars&&bars.length>12){
+    let hiN=-Infinity,loN=Infinity;
+    for(let i=bars.length-12;i<bars.length;i++){if(bars[i].h>hiN)hiN=bars[i].h;if(bars[i].l<loN)loN=bars[i].l;}
+    if(!r1)r1=hiN; if(!s1)s1=loN;
+  }
+  if(!r1||!s1||r1<=s1)return null;
+  if(dir==="short"){
+    const trg=s1,stp=r1,risk=stp-trg; if(risk<=0)return null;
+    const tgt=trg-V.tmult*risk;
+    const movePct=(trg-tgt)/trg*100;
+    if(movePct<V.minPct||movePct>60)return null;
+    return {bias:"short",trigger:trg,target:tgt,stop:stp,rr:V.tmult};
+  }
+  const trg=r1,stp=s1,risk=trg-stp; if(risk<=0)return null;
+  const tgt=trg+V.tmult*risk;
+  const movePct=(tgt-trg)/trg*100;
+  if(movePct<V.minPct||movePct>60)return null;
+  return {bias:"long",trigger:trg,target:tgt,stop:stp,rr:V.tmult};
+}
+function labResolve(bars,i,plan,V){
+  const long=plan.bias!=="short", risk=Math.abs(plan.trigger-plan.stop);
+  if(!risk)return null;
+  let triggered=false;
+  for(let j=i+1;j<Math.min(i+1+V.hold,bars.length);j++){
+    const b=bars[j],days=j-i;
+    if(!triggered){
+      if(days>V.entryWin)return {o:"nofill",r:0};
+      if(long?(b.h>=plan.trigger):(b.l<=plan.trigger))triggered=true; else continue;
+    }
+    const hitT=long?(b.h>=plan.target):(b.l<=plan.target);
+    const hitS=long?(b.l<=plan.stop):(b.h>=plan.stop);
+    if(hitS)return {o:"loss",r:-1};
+    if(hitT)return {o:"win",r:V.tmult};
+  }
+  if(!triggered)return {o:"nofill",r:0};
+  const j=Math.min(i+V.hold,bars.length-1);
+  const r=(long?(bars[j].c-plan.trigger):(plan.trigger-bars[j].c))/risk;
+  return {o:"timeout",r:Math.max(-1,Math.min(r,V.tmult))};
+}
+function labRun(hist,V,fromFrac,toFrac){
+  let wins=0,losses=0,pos=0,neg=0,n=0,sumR=0,eq=0,peak=0,mdd=0;
+  for(const t of Object.keys(hist)){
+    const bars=hist[t];
+    const start=Math.max(90,Math.floor(bars.length*fromFrac));
+    const end=Math.floor(bars.length*toFrac)-2;
+    let i=start;
+    while(i<end){
+      const win=bars.slice(Math.max(0,i-129),i+1);
+      const price=win[win.length-1].c;
+      const closes=win.map((b)=>b.c);
+      const s20=sma(closes,20),s50=sma(closes,50);
+      /* variant filters */
+      if(V.trendFilter){
+        if(!s20||!s50){i++;continue;}
+      }
+      const levels=findLevels(win,price);
+      const patterns=detectPatterns(win,price);
+      const r=rateSetup(price,win,levels,null,patterns,null);
+      let dir=r.dir;
+      if(V.trendFilter&&s20&&s50){
+        const up=(price>s20&&s20>s50), dn=(price<s20&&s20<s50);
+        if(dir==="long"&&!up){i++;continue;}
+        if(dir==="short"&&!dn){i++;continue;}
+      }
+      const strength=Math.abs(r.bullScore-r.bearScore);
+      if(dir==="neutral"||strength<V.minStrength){i++;continue;}
+      if(V.volFilter){
+        const vol=win[win.length-1].v||0;let av=0,c=0;
+        for(let k=Math.max(0,win.length-21);k<win.length-1;k++){av+=(win[k].v||0);c++;}
+        const rv=c&&av?vol/(av/c):0;
+        if(rv<V.volFilter){i++;continue;}
+      }
+      const plan=labPlan(price,levels,dir,win,V);
+      if(!plan){i++;continue;}
+      const res=labResolve(bars,i,plan,V);
+      if(!res||res.o==="nofill"){i+=2;continue;}
+      n++;sumR+=res.r;
+      if(res.o==="win")wins++; else if(res.o==="loss")losses++;
+      if(res.r>0)pos+=res.r; else neg+=Math.abs(res.r);
+      eq+=res.r; if(eq>peak)peak=eq; if(peak-eq>mdd)mdd=peak-eq;
+      i+=Math.max(2,V.hold>>1);
+    }
+  }
+  return {n:n,wins:wins,losses:losses,wr:(wins+losses)?wins/(wins+losses)*100:0,
+    pf:neg?pos/neg:(pos?Infinity:0),avgR:n?sumR/n:0,mdd:mdd,totR:sumR};
+}
+async function runLab(){
+  $("labBtn").disabled=true;$("labOut").innerHTML="";
+  $("labStatus").innerHTML='<p class="status">▸ pulling 5 years of history…</p>';
+  try{
+    const list=UNIVERSE.slice(0,24);
+    const hist={};let got=0;
+    const q=list.slice();
+    async function w(){while(q.length){const t=q.shift();
+      try{let m=null;
+        try{m=await getMarket(t,"2y","1d",true);}catch(e1){}
+        if(!m||!m.bars||m.bars.length<250){try{m=await getMarket(t,"1y","1d");}catch(e2){}}
+        if(m&&m.bars&&m.bars.length>=250)hist[t]=m.bars;}catch(e){}
+      got++;$("labStatus").innerHTML='<p class="status">▸ data '+got+'/'+list.length+'…</p>';}}
+    await Promise.all([w(),w(),w(),w()]);
+    const names=Object.keys(hist);
+    if(names.length<4)throw new Error("only "+names.length+" tickers loaded — the free data relays are throttling. Wait ~60s and run again, or deploy the hosted version (no relays, no throttling).");
+    /* variant grid */
+    const variants=[];
+    [0.8,1.0,1.2,1.5,1.8,2.5].forEach(function(tm){
+      [3,5,10,20].forEach(function(hold){
+        [1.5,2.5].forEach(function(vf){
+          [2.5,4.0].forEach(function(ms){
+            variants.push({tmult:tm,hold:hold,trendFilter:true,volFilter:vf,minStrength:ms,minPct:1.5,entryWin:3,
+              name:"T"+tm+"R/H"+hold+"d/vol"+vf+(ms>3?"/strong":"")});
+          });
+        });
+      });
+    });
+    const out=[];
+    for(let k=0;k<variants.length;k++){
+      const V=variants[k];
+      $("labStatus").innerHTML='<p class="status">▸ testing variant '+(k+1)+'/'+variants.length+': '+esc(V.name)+'…</p>';
+      await new Promise((r)=>setTimeout(r,0));
+      const early=labRun(hist,V,0,0.55);
+      const late=labRun(hist,V,0.55,1);
+      out.push({V:V,early:early,late:late});
+    }
+    /* a variant PASSES only if both halves are profitable with enough trades */
+    const passed=out.filter((x)=>x.early.n>=25&&x.late.n>=15&&x.early.pf>=1.15&&x.late.pf>=1.15);
+    window._labSort="both";
+    passed.sort(function(a,b){return (Math.min(b.early.wr,b.late.wr)*Math.max(0,b.late.avgR))-(Math.min(a.early.wr,a.late.wr)*Math.max(0,a.late.avgR));});
+    const all=out.slice().sort((a,b)=>b.late.pf-a.late.pf);
+    function row(x,idx){
+      const rob=Math.min(x.early.pf,x.late.pf);
+      const elite=Math.min(x.early.wr,x.late.wr)>=48&&x.late.avgR>=0.20;
+      return '<tr style="border-top:1px solid var(--line)'+(elite?';background:rgba(232,184,75,0.08)':'')+'"><td style="padding:6px 8px">'+(elite?'* ':'')+esc(x.V.name)+'</td>'
+      +'<td>'+x.early.n+'</td><td class="'+(x.early.pf>=1.2?"up":"down")+'">'+(x.early.pf===Infinity?'∞':x.early.pf.toFixed(2))+'</td>'
+      +'<td>'+x.early.wr.toFixed(0)+'%</td>'
+      +'<td>'+x.late.n+'</td><td class="'+(x.late.pf>=1.2?"up":"down")+'">'+(x.late.pf===Infinity?'∞':x.late.pf.toFixed(2))+'</td>'
+      +'<td>'+x.late.wr.toFixed(0)+'%</td>'
+      +'<td>-'+x.late.mdd.toFixed(1)+'R</td>'
+      +'<td class="'+(rob>=1.2?"up":"down")+'" style="font-weight:700">'+(rob===Infinity?'∞':rob.toFixed(2))+'</td>'
+      +'<td class="'+(Math.min(x.early.wr,x.late.wr)>=50?"up":"amber")+'" style="font-weight:700">'+Math.min(x.early.wr,x.late.wr).toFixed(0)+'%</td>'
+      +'<td class="'+(x.late.avgR>=0.2?"up":"amber")+'" style="font-weight:700">'+(x.late.avgR>=0?'+':'')+x.late.avgR.toFixed(2)+'R</td>'
+      +'<td><button class="ghost" style="margin:0;padding:5px 10px;font-size:10px" onclick="loadLabConfig('+idx+')">LOAD</button></td></tr>';
+    }
+    const head='<tr style="color:var(--muted);text-align:left"><th style="padding:6px 8px">VARIANT</th><th>EARLY n</th><th>EARLY PF</th><th>WR</th><th>LATE n</th><th>LATE PF</th><th>WR</th><th>LATE DD</th><th>ROBUST PF</th><th>WORST WR</th><th>AVG/TRADE</th><th>USE</th></tr>';
+    let html='<div class="card"><div class="label">WALK-FORWARD RESULTS — '+variants.length+' VARIANTS, '+names.length+' TICKERS, 5 YEARS SPLIT IN TWO ERAS</div>';
+    if(passed.length){
+      html+='<div class="row" style="gap:8px;margin-bottom:10px"><button class="ghost" style="margin:0" onclick="labSort(\'both\')">BEST OF BOTH</button><button class="ghost" style="margin:0" onclick="labSort(\'wr\')">WIN RATE</button><button class="ghost" style="margin:0" onclick="labSort(\'pf\')">SORT BY PROFIT FACTOR</button></div>'
+      +'<div class="mono small" style="margin-bottom:8px"><span class="up">'+passed.length+' variant'+(passed.length>1?'s':'')+' passed</span> — profitable in BOTH eras (PF ≥ 1.2 each, enough trades). These are candidates, not guarantees.</div>'
+      +'<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-family:\'JetBrains Mono\',monospace;font-size:11px;white-space:nowrap">'+head+passed.map(function(x,i){return row(x,i);}).join("")+'</table></div>'
+      +'<button class="ghost" onclick="loadLabConfig(0)">LOAD TOP-SORTED VARIANT (or hit LOAD on any row)</button>';
+    } else {
+      html+='<div class="mono small" style="margin-bottom:8px"><span class="down">ZERO variants passed the walk-forward test.</span> None stayed profitable across both eras. That is the honest result: on this universe and these rules, there is no demonstrated edge to trade size on. Better to know it here than with money.</div>'
+      +'<div class="small" style="margin-bottom:8px">Full grid below, sorted by recent-era profit factor, so you can see what came closest:</div>'
+      +'<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-family:\'JetBrains Mono\',monospace;font-size:11px;white-space:nowrap">'+head+all.slice(0,12).map(function(x,i){return row(x,i);}).join("")+'</table></div>';
+    }
+    html+='</div>'
+    +'<div class="card"><div class="label">HOW TO READ THIS</div><div class="small" style="line-height:1.8">'
+    +'EARLY = the older ~55% of history. LATE = the most recent ~45%, which the variant was never selected on. ROBUST = the weaker of the two profit factors, because a strategy is only as good as its worst era. '
+    +'A variant that looks amazing in EARLY and falls apart in LATE is curve-fit, and it is the single most common way people convince themselves they have an edge. '
+    +'WIN RATE vs SIZE OF WINS is a direct tradeoff: tighter targets (T0.8R–T1.2R) hit far more often but pay less each time; wider targets (T1.8R–T2.5R) win less often but pay more. AVG/TRADE is what actually compounds your account, so a 52% variant at +0.10R and a 40% variant at +0.25R are not equal — the second one is better despite the uglier win rate. '
++'Even a passing variant is in-sample on the same universe, with no slippage, commissions, or option decay modeled. Treat a pass as "worth paper trading," never as "size up."'
+    +'</div></div>';
+    window._labOut=passed;
+    window._labHead=head;window._labAll=all;window._labNames=names.length;window._labVarN=variants.length;
+    window._labRowFn=row;
+    window._labRender=function(){
+      const p=window._labOut||[];
+      if(!p.length)return;
+      const rf=window._labRowFn;
+      const t='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-family:\'JetBrains Mono\',monospace;font-size:11px;white-space:nowrap">'+window._labHead+p.map(function(x,i){return rf(x,i);}).join("")+'</table></div>';
+      const box=document.getElementById("labTable");
+      if(box)box.innerHTML=t;
+    };
+    html=html.replace('<div style="overflow-x:auto"><table','<div id="labTable"><div style="overflow-x:auto"><table');
+    html=html.replace('</table></div>','</table></div></div>');
+    $("labOut").innerHTML=html;
+    $("labStatus").innerHTML="";
+    markLive("lab complete: "+passed.length+"/"+variants.length+" passed");
+  }catch(e){
+    $("labStatus").innerHTML='<p class="card err">'+esc(e.message)+'</p>';
+  }finally{$("labBtn").disabled=false;}
+}
+function labSort(mode){
+  const p=window._labOut||[];
+  if(!p.length)return;
+  window._labSort=mode;
+  const wWR=function(x){return Math.min(x.early.wr,x.late.wr);};
+  const bothScore=function(x){return wWR(x)*Math.max(0,x.late.avgR);};
+  if(mode==="wr")p.sort(function(a,b){return wWR(b)-wWR(a);});
+  else if(mode==="both")p.sort(function(a,b){return bothScore(b)-bothScore(a);});
+  else p.sort(function(a,b){return Math.min(b.early.pf,b.late.pf)-Math.min(a.early.pf,a.late.pf);});
+  if(window._labRender)window._labRender();
+}
+function loadLabConfig(i){
+  const x=(window._labOut||[])[i];
+  if(!x)return;
+  localStorage.setItem(LAB_KEY,JSON.stringify(x.V));
+  flash("Loaded "+x.V.name);
+  const c=document.getElementById("cfgBar");
+  if(c)c.innerHTML='ENGINE CONFIG: <span class="amber">'+esc(x.V.name)+'</span> \u00b7 walk-forward: '+Math.min(x.early.wr,x.late.wr).toFixed(0)+'% worst-era WR, '+Math.min(x.early.pf,x.late.pf).toFixed(2)+' robust PF, '+(x.late.avgR>=0?'+':'')+x.late.avgR.toFixed(2)+'R/trade \u00b7 <span style="cursor:pointer;text-decoration:underline" onclick="localStorage.removeItem(\'deuce-lab-config\');location.reload()">reset</span>';
+  $("labOut").innerHTML+='<div class="card"><div class="mono small"><span class="up">ACTIVE CONFIG: '+esc(x.V.name)+'</span> — live scans now use this variant\u2019s target distance, hold window and filters. Paper trade it before risking size.</div></div>';
+}
+
+/* ---------- RECORD ---------- */
+const KEY="moes-calls-v1"; /* keeps your existing 3/3 record */
+function getRisk(){const v=parseFloat(localStorage.getItem("deuce-risk"));return (v&&v>0)?v:100;}
+function setRisk(v){const n=parseFloat(v);if(n&&n>0){localStorage.setItem("deuce-risk",String(n));flash("Risk per trade set: $"+n);}}
+function sizeShares(entry,stop,mult){const r=getRisk()*(mult||1);const per=Math.abs(entry-stop);if(!per)return null;return Math.max(1,Math.floor(r/per));}
+function sizeContracts(prem,mult){const r=getRisk()*(mult||1);if(!prem)return null;return Math.max(1,Math.floor(r/(prem*100)));}
+function nyMinutesNow(){try{const ny=new Date(new Date().toLocaleString("en-US",{timeZone:"America/New_York"}));return ny.getHours()*60+ny.getMinutes();}catch(e){return 600;}}
+const getCalls=()=>{try{return JSON.parse(localStorage.getItem(KEY))||[];}catch(e){return[];}};
+const setCalls=(c)=>localStorage.setItem(KEY,JSON.stringify(c));
+function logCall(c){
+  if(!c||!c.plan)return;
+  const calls=getCalls();
+  calls.unshift({id:Date.now()+"-"+c.ticker,ticker:c.ticker,name:c.name||"",date:today(),entryPrice:+c.price,
+    bias:c.plan.bias,trigger:c.plan.trigger,target:c.plan.target,stop:c.plan.stop,conv:c.plan.convLabel||null,status:"open",gradedPrice:null,gradedDate:null});
+  setCalls(calls);flash("Logged "+c.ticker+" call");renderRecord();
+}
+function removeCall(id){setCalls(getCalls().filter((c)=>c.id!==id));renderRecord();}
+function renderRecord(){
+  const calls=getCalls();
+  const wins=calls.filter((c)=>c.status==="win").length,losses=calls.filter((c)=>c.status==="loss").length;
+  const nofills=calls.filter((c)=>c.status==="nofill").length;
+  const graded=wins+losses,wr=graded?Math.round(wins/graded*100):null;
+  $("winRate").textContent=wr==null?"—":wr+"%";
+  $("winRate").className="px "+(wr==null?"":wr>=50?"up":"down");
+  let winR=0;
+  for(const c of calls){
+    if(c.status!=="win"||!c.trigger||!c.target||!c.stop)continue;
+    const risk=Math.abs(c.trigger-c.stop);if(!risk)continue;
+    winR+=Math.abs(c.target-c.trigger)/risk;
+  }
+  const avgWinR=wins?winR/wins:0;
+  const pf=losses?(winR/losses):(wins?Infinity:0);
+  $("recordStats").innerHTML='<span class="up">'+wins+' wins</span> · <span class="down">'+losses+' losses</span> · '+calls.filter((c)=>c.status==="open").length+' open'+(nofills?' · '+nofills+' no-fill (never triggered — not counted)':'')
+    +(graded?'<br>avg win <span class="up">+'+avgWinR.toFixed(1)+'R</span> · losses -1R · profit factor <span class="'+(pf>=1.5?"up":pf>=1?"amber":"down")+'">'+(pf===Infinity?'∞':pf.toFixed(2))+'</span>'
+    +'<br><span style="color:var(--muted)">PF above 1.5 = real edge · 1.0–1.5 = thin · below 1.0 = losing even when the win rate looks fine</span>':'');
+  /* per-conviction-tier win rates — the earned version of "confidence %" */
+  const tiers={};
+  for(const c of calls){
+    if(!c.conv||(c.status!=="win"&&c.status!=="loss"))continue;
+    if(!tiers[c.conv])tiers[c.conv]={w:0,l:0};
+    tiers[c.conv][c.status==="win"?"w":"l"]++;
+  }
+  const tierKeys=Object.keys(tiers);
+  if(tierKeys.length){
+    $("recordStats").innerHTML+='<br><span style="color:var(--muted)">by conviction: </span>'+tierKeys.map((k)=>{
+      const t=tiers[k],n=t.w+t.l;
+      return k+' <span class="'+(t.w/n>=0.5?"up":"down")+'">'+Math.round(t.w/n*100)+'%</span> ('+n+')';
+    }).join(' · ');
+  }
+  $("recordOut").innerHTML=calls.length?calls.map((c)=>
+    '<div class="card" style="border-left:3px solid '+(c.status==="win"?"var(--up)":c.status==="loss"?"var(--down)":c.status==="nofill"?"var(--muted)":"var(--line)")+'">'
+    +'<div class="row" style="justify-content:space-between"><div class="row">'
+    +'<span class="tk" style="font-size:18px">'+esc(c.ticker)+'</span>'
+    +'<span class="mono '+(c.bias==="short"?"down":"up")+'" style="font-size:11px;font-weight:700">'+c.bias.toUpperCase()+'</span>'
+    +'<span class="mono '+(c.status==="win"?"up":c.status==="loss"?"down":c.status==="nofill"?"mutedc":"amber")+'" style="font-size:12px;font-weight:700">'+(c.status==="nofill"?"NO FILL":c.status.toUpperCase())+'</span></div>'
+    +'<button onclick="removeCall(\''+c.id+'\')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px" aria-label="delete">✕</button></div>'
+    +'<div class="small" style="margin-top:6px;line-height:1.9">called '+c.date+' @ '+fmtPx(c.entryPrice)+' · target <span class="up">'+fmtPx(c.target)+'</span> · stop <span class="down">'+fmtPx(c.stop)+'</span>'+(c.gradedPrice!=null?' · last checked '+fmtPx(c.gradedPrice)+' ('+c.gradedDate+')':'')+'</div></div>').join("")
+  :'<p class="small" style="margin-top:16px;line-height:1.7">No calls yet. Log them from any tab, then grade here. Grading walks the real candles since each call: trigger must be touched first (or it becomes NO FILL, not counted), then whichever of target/stop got hit first decides it — same-day both counts the loss, so the win rate can only understate your edge, never flatter it.</p>';
+}
+async function gradeCalls(){
+  const calls=getCalls(),open=calls.filter((c)=>c.status==="open");
+  if(!open.length){flash("No open calls");return;}
+  $("gradeBtn").disabled=true;
+  $("recordStatus").innerHTML='<p class="status">▸ walking the candles since each call — target or stop, whichever got touched first…</p>';
+  try{
+    const tickers=[...new Set(open.map((c)=>c.ticker))],hist={};
+    for(const t of tickers){
+      try{const m=await getMarket(t,"1mo","1d");hist[t]={bars:m.bars,last:m.price};}catch(e){}
+    }
+    const next=calls.map((c)=>{
+      if(c.status!=="open")return c;
+      const h=hist[c.ticker];
+      if(!h||!h.bars||!h.bars.length)return c;
+      const since=Date.parse(c.date)-12*3600000;
+      const bars=h.bars.filter((b)=>b.t>=since);
+      const long=c.bias!=="short";
+      let triggered=false,status="open";
+      for(const b of bars){
+        if(!triggered){
+          if(long?(b.h>=c.trigger):(b.l<=c.trigger))triggered=true;
+          else continue;
+        }
+        const hitT=long?(b.h>=c.target):(b.l<=c.target);
+        const hitS=long?(b.l<=c.stop):(b.h>=c.stop);
+        if(hitT&&hitS){status="loss";break;} /* both same day = conservative loss */
+        if(hitS){status="loss";break;}
+        if(hitT){status="win";break;}
+      }
+      if(status==="open"&&!triggered){
+        const ageDays=(Date.now()-Date.parse(c.date))/86400000;
+        if(ageDays>=14)status="nofill"; /* trigger never hit in 2 weeks — you never entered */
+      }
+      return Object.assign({},c,{status:status,gradedPrice:h.last,gradedDate:today(),triggered:triggered});
+    });
+    setCalls(next);renderRecord();markLive("record graded on candle paths");
+    flash("Graded: first-touch wins/losses, no-fills excluded");
+  }finally{$("gradeBtn").disabled=false;$("recordStatus").innerHTML="";}
+}
+renderRecord();
+(function(){
+  const c=getLabConfig();
+  $("cfgBar").innerHTML=c
+    ? 'ENGINE CONFIG: <span class="amber">'+esc(c.name)+'</span> (walk-forward validated) · <span style="cursor:pointer;text-decoration:underline" onclick="localStorage.removeItem(\'deuce-lab-config\');location.reload()">reset to default</span>'
+    : 'ENGINE CONFIG: default rules \u2014 NOT yet walk-forward validated. Run the LAB on the options tab before trading size.';
+})();
+window.addEventListener("load",function(){
+  if(typeof TradingView==="undefined"){ $("sandboxWarn").style.display="block"; }
+});
+</script>
+</body>
+</html>
